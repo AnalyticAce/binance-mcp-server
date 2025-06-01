@@ -127,6 +127,38 @@ def get_ticker(symbol: str) -> Dict[str, Any]:
         }
 
 
+@mcp.tool()
+def get_available_assets() -> Dict[str, Any]:
+    """
+    Get a list of all available assets on Binance.
+    
+    Returns:
+        Dictionary containing asset information.
+    """
+    try:
+        client = get_binance_client()
+        exchange_info = client.get_exchange_info()
+        
+        assets = {symbol["symbol"]: symbol for symbol in exchange_info["symbols"]}
+        
+        return {
+            "assets": assets,
+            "count": len(assets)
+        }
+        
+    except BinanceAPIException as e:
+        return {
+            "error": "Binance API Error",
+            "message": str(e),
+            "code": getattr(e, 'code', 'UNKNOWN')
+        }
+    except Exception as e:
+        return {
+            "error": "Unexpected Error",
+            "message": str(e)
+        }
+
+
 if __name__ == "__main__":
     from dotenv import load_dotenv
     load_dotenv()
