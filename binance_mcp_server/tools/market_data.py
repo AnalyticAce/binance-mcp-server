@@ -1,1 +1,0 @@
-# market data tools for Binance MCP server
