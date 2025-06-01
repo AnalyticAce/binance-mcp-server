@@ -81,7 +81,7 @@ def get_ticker_price(symbol: str) -> Dict[str, Any]:
 
 
 @mcp.tool()
-def get_24hr_ticker(symbol: str) -> Dict[str, Any]:
+def get_ticker(symbol: str) -> Dict[str, Any]:
     """
     Get 24-hour ticker price change statistics for a symbol.
     
@@ -114,68 +114,6 @@ def get_24hr_ticker(symbol: str) -> Dict[str, Any]:
             "count": ticker["count"]
         }
         
-    except BinanceAPIException as e:
-        return {
-            "error": "Binance API Error",
-            "message": str(e),
-            "code": getattr(e, 'code', 'UNKNOWN')
-        }
-    except Exception as e:
-        return {
-            "error": "Unexpected Error",
-            "message": str(e)
-        }
-
-
-@mcp.tool()
-def get_exchange_info(symbol: Optional[str] = None) -> Dict[str, Any]:
-    """
-    Get exchange trading rules and symbol information.
-    
-    Args:
-        symbol: Optional specific symbol to get info for (e.g., 'BTCUSDT'). 
-                If None, returns general exchange info.
-        
-    Returns:
-        Dictionary containing exchange information and trading rules.
-    """
-    try:
-        client = get_binance_client()
-        
-        if symbol:
-            info = client.get_exchange_info()
-            symbol_info = next(
-                (s for s in info["symbols"] if s["symbol"] == symbol.upper()), 
-                None
-            )
-            
-            if not symbol_info:
-                return {
-                    "error": "Symbol Not Found",
-                    "message": f"Symbol {symbol.upper()} not found on exchange"
-                }
-                
-            return {
-                "symbol": symbol_info["symbol"],
-                "status": symbol_info["status"],
-                "base_asset": symbol_info["baseAsset"],
-                "quote_asset": symbol_info["quoteAsset"],
-                "base_precision": symbol_info["baseAssetPrecision"],
-                "quote_precision": symbol_info["quotePrecision"],
-                "order_types": symbol_info["orderTypes"],
-                "iceberg_allowed": symbol_info["icebergAllowed"],
-                "filters": symbol_info["filters"]
-            }
-        else:
-            info = client.get_exchange_info()
-            return {
-                "timezone": info["timezone"],
-                "server_time": info["serverTime"],
-                "rate_limits": info["rateLimits"],
-                "exchange_filters": info["exchangeFilters"],
-                "symbols_count": len(info["symbols"])
-            }
-            
     except BinanceAPIException as e:
         return {
             "error": "Binance API Error",
