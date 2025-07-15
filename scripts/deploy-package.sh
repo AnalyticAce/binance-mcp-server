@@ -6,9 +6,12 @@
 set -e  # Exit immediately if a command exits with a non-zero status
 
 # Display banner
-echo "========================================================"
-echo "  Binance MCP Server Package Deployment"
-echo "========================================================"
+echo ""
+echo "╔════════════════════════════════════════════════════════╗"
+echo "║           🚀 Binance MCP Server Deployment 🚀          ║"
+echo "╠════════════════════════════════════════════════════════╣"
+echo "║   Automating build & publish with UV package manager   ║"
+echo "╚════════════════════════════════════════════════════════╝"
 
 # Configuration
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
