@@ -68,7 +68,21 @@ uv build
 # Publish package using uv publish
 log "Deploying package..."
 if [ -n "${PYPI_TOKEN:-}" ]; then
-    uv publish --token "$PYPI_TOKEN" dist/*
+    set +e  # Allow uv publish to fail without exiting the script
+    PUBLISH_OUTPUT=$(uv publish --token "$PYPI_TOKEN" dist/* 2>&1)
+    PUBLISH_EXIT_CODE=$?
+    set -e
+
+    if [[ $PUBLISH_EXIT_CODE -eq 0 ]]; then
+        log "Package published successfully."
+    elif echo "$PUBLISH_OUTPUT" | grep -qi "File already exists"; then
+        log "Package version already published on PyPI. Exiting gracefully."
+        exit 0
+    else
+        log "uv publish failed:"
+        echo "$PUBLISH_OUTPUT"
+        exit $PUBLISH_EXIT_CODE
+    fi
 else
     log "PYPI_TOKEN not found. Cannot deploy to PyPI."
     log "To deploy, set the PYPI_TOKEN environment variable:"
