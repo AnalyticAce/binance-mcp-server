@@ -164,40 +164,6 @@ pytest
 python -m binance_mcp_server.cli --dev --reload
 ```
 
-### Project Structure
-
-```
-binance-mcp-server/
-├── 📦 binance_mcp_server/         # Main package
-│   ├── __init__.py                # Package initialization  
-│   ├── server.py                  # MCP server implementation
-│   ├── cli.py                     # Command-line interface
-│   ├── tools/                     # MCP tool implementations
-│   │   ├── __init__.py
-│   │   ├── account.py             # Account management tools
-│   │   ├── trading.py             # Trading operation tools
-│   │   ├── market_data.py         # Market data tools
-│   │   └── risk.py                # Risk management tools
-│   └── utils/                     # Utility modules
-│       ├── __init__.py
-│       ├── binance_client.py      # Binance API client wrapper
-│       └── validators.py          # Input validation helpers
-├── 📚 docs/                       # Documentation
-│   ├── setup.md                   # Detailed setup guide
-│   ├── overview.md                # API overview and examples
-│   ├── contributing.md            # Contributing guidelines
-│   └── suggested_mcp_tools.md     # Tool specifications
-├── 🧪 tests/                      # Test suite
-│   ├── __init__.py
-│   ├── test_server.py             # Server tests
-│   ├── test_tools/                # Tool-specific tests
-│   └── conftest.py                # Test configuration
-├── 📄 scripts/                    # Deployment and utility scripts
-├── ⚙️ pyproject.toml               # Project configuration
-├── 📖 README.md                   # This file
-└── 📄 LICENSE                     # MIT license
-```
-
 ### Testing Strategy
 
 ```bash
