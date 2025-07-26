@@ -8,14 +8,16 @@ tools that can be called by LLM clients.
 
 import sys
 import logging
+import argparse
 from typing import Dict, Any
 from fastmcp import FastMCP
+from dotenv import load_dotenv
 
 
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    stream=sys.stderr  # Essential: Use stderr for STDIO servers
+    stream=sys.stderr
 )
 
 
@@ -35,7 +37,12 @@ mcp = FastMCP(
     
     All operations respect Binance API rate limits and use proper configuration management.
     Tools are implemented in dedicated modules for better maintainability.
-    """
+    """,
+    capabilities={
+        "tools": {"listChanged": True},
+        "resources": {},
+        "prompts": {}
+    }
 )
 
 
@@ -144,30 +151,140 @@ def get_available_assets() -> Dict[str, Any]:
         }
 
 
-if __name__ == "__main__":
-    import argparse
-    from dotenv import load_dotenv
+def validate_configuration() -> bool:
+    """
+    Validate server configuration and dependencies.
     
+    Returns:
+        bool: True if configuration is valid, False otherwise
+    """
+    try:
+        from binance_mcp_server.config import BinanceConfig
+        
+        config = BinanceConfig()
+        if not config.is_valid():
+            logger.error("Invalid Binance configuration:")
+            for error in config.get_validation_errors():
+                logger.error(f"  • {error}")
+            return False
+            
+        logger.info(f"Configuration validated successfully (testnet: {config.testnet})")
+        return True
+        
+    except ImportError as e:
+        logger.error(f"Failed to import configuration module: {str(e)}")
+        return False
+    except Exception as e:
+        logger.error(f"Configuration validation failed: {str(e)}")
+        return False
+
+
+def main() -> None:
+    """
+    Main entry point for the Binance MCP Server.
+    
+    Handles argument parsing, configuration validation, and server startup
+    with proper error handling and exit codes.
+    
+    Exit Codes:
+        0: Successful execution or user interruption
+        1: Configuration error or validation failure
+        84: Server startup or runtime error
+    """
     load_dotenv()
     
-    parser = argparse.ArgumentParser(description="Binance MCP Server")
-    parser.add_argument("--transport", choices=["stdio", "http"], default="stdio",
-                    help="Transport method to use")
-    parser.add_argument("--port", type=int, default=8000,
-                    help="Port for HTTP transport")
-    parser.add_argument("--host", type=str, default="localhost",
-                    help="Host for HTTP transport")
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(
+        description="Binance MCP Server - Model Context Protocol server for Binance API",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+        Examples:
+            %(prog)s                           # Start with STDIO transport (default)
+            %(prog)s --transport http          # Start with HTTP transport for testing
+            %(prog)s --transport http --port 8080 --host 0.0.0.0  # Custom HTTP configuration
+        """
+    )
+    
+    parser.add_argument(
+        "--transport", 
+        choices=["stdio", "http"], 
+        default="stdio",
+        help="Transport method to use (stdio for MCP clients, http for testing)"
+    )
+    parser.add_argument(
+        "--port", 
+        type=int, 
+        default=8000,
+        help="Port for HTTP transport (default: 8000)"
+    )
+    parser.add_argument(
+        "--host", 
+        type=str, 
+        default="localhost",
+        help="Host for HTTP transport (default: localhost)"
+    )
+    parser.add_argument(
+        "--log-level",
+        choices=["DEBUG", "INFO", "WARNING", "ERROR"],
+        default="INFO",
+        help="Set logging level (default: INFO)"
+    )
     
     args = parser.parse_args()
     
+    # Configure logging level based on argument
+    logging.getLogger().setLevel(getattr(logging, args.log_level))
+    
+    
     logger.info(f"Starting Binance MCP Server with {args.transport} transport")
+    logger.info(f"Log level set to: {args.log_level}")
+    
+    
+    # Validate configuration before starting server
+    if not validate_configuration():
+        logger.error("Configuration validation failed. Please check your environment variables.")
+        logger.error("Required: BINANCE_API_KEY, BINANCE_API_SECRET")
+        logger.error("Optional: BINANCE_TESTNET (true/false)")
+        sys.exit(84)
+    
+    
+    if args.transport == "http":
+        logger.info(f"HTTP server will start on {args.host}:{args.port}")
+        logger.info("HTTP mode is primarily for testing. Use STDIO for MCP clients.")
+    else:
+        logger.info("STDIO mode: Ready for MCP client connections")
+    
     
     try:
         if args.transport == "stdio":
+            logger.info("Initializing STDIO transport...")
             mcp.run(transport="stdio")
         else:
-            logger.info(f"HTTP server starting on {args.host}:{args.port}")
+            logger.info(f"Initializing HTTP transport on {args.host}:{args.port}")
             mcp.run(transport="http", port=args.port, host=args.host)
+
+    except KeyboardInterrupt:
+        logger.info("Server shutdown requested by user (Ctrl+C)")
+        sys.exit(0)
+
+    except ImportError as e:
+        logger.error(f"Missing required dependencies: {str(e)}")
+        logger.error("Please ensure all required packages are installed")
+        sys.exit(84)
+
+    except OSError as e:
+        if "Address already in use" in str(e):
+            logger.error(f"Port {args.port} is already in use. Please choose a different port.")
+            sys.exit(84)
+        else:
+            logger.error(f"Network error during server startup: {str(e)}")
+            sys.exit(84)
+
     except Exception as e:
-        logger.error(f"Server startup failed: {str(e)}")
-        sys.exit(1)
+        logger.error(f"Server startup failed with unexpected error: {str(e)}")
+        logger.error("This is likely a configuration or environment issue")
+        sys.exit(84)
+
+
+if __name__ == "__main__":
+    main()
