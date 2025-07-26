@@ -203,25 +203,5 @@ def rate_limited(rate_limiter: Optional[RateLimiter] = None):
     return decorator
 
 
-def get_pyproject_version() -> str:
-    """
-    Get the current version of the project from pyproject.toml.
-    
-    Returns:
-        str: The version string
-    """
-    try:
-        from importlib.metadata import version
-        return version("binance-mcp-server")
-    except Exception as e:
-        logger.error(f"Failed to get project version: {str(e)}")
-        return "unknown"
-
-
 # Global rate limiter instance
 binance_rate_limiter = RateLimiter(max_calls=1200, window=60)
-
-
-if __name__ == "__main__":
-
-    print(f"Current project version: {get_pyproject_version()}")

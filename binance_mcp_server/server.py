@@ -12,7 +12,6 @@ import argparse
 from typing import Dict, Any
 from fastmcp import FastMCP
 from dotenv import load_dotenv
-from binance_mcp_server.utils import get_pyproject_version
 
 
 logging.basicConfig(
@@ -27,7 +26,7 @@ logger = logging.getLogger(__name__)
 
 mcp = FastMCP(
     name="binance-mcp-server",
-    version=get_pyproject_version(),
+    version="1.2.4",
     description="MCP server for Binance cryptocurrency exchange API",
     instructions="""
     This server provides access to Binance cryptocurrency exchange functionality.
@@ -201,16 +200,16 @@ def main() -> None:
         epilog="""
         Examples:
             %(prog)s                           # Start with STDIO transport (default)
-            %(prog)s --transport http          # Start with HTTP transport for testing
-            %(prog)s --transport http --port 8080 --host 0.0.0.0  # Custom HTTP configuration
+            %(prog)s --transport streamable-http          # Start with streamable-http transport for testing
+            %(prog)s --transport sse --port 8080 --host 0.0.0.0  # Custom SSE configuration
         """
     )
     
     parser.add_argument(
         "--transport", 
-        choices=["stdio", "http"], 
+        choices=["stdio", "streamable-http", "sse"], 
         default="stdio",
-        help="Transport method to use (stdio for MCP clients, http for testing)"
+        help="Transport method to use (stdio for MCP clients, streamable-http/sse for testing)"
     )
     parser.add_argument(
         "--port", 
@@ -249,7 +248,7 @@ def main() -> None:
         sys.exit(84)
     
     
-    if args.transport == "http":
+    if args.transport in ["streamable-http", "sse"]:
         logger.info(f"HTTP server will start on {args.host}:{args.port}")
         logger.info("HTTP mode is primarily for testing. Use STDIO for MCP clients.")
     else:
@@ -261,8 +260,8 @@ def main() -> None:
             logger.info("Initializing STDIO transport...")
             mcp.run(transport="stdio")
         else:
-            logger.info(f"Initializing HTTP transport on {args.host}:{args.port}")
-            mcp.run(transport="http", port=args.port, host=args.host)
+            logger.info(f"Initializing {args.transport} transport on {args.host}:{args.port}")
+            mcp.run(transport=args.transport, port=args.port, host=args.host)
 
     except KeyboardInterrupt:
         logger.info("Server shutdown requested by user (Ctrl+C)")

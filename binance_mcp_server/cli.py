@@ -8,9 +8,17 @@ configuration options including API credentials, testnet mode, and transport met
 import os
 import typer
 from typing import Optional
+from enum import Enum
 from dotenv import load_dotenv
 from binance_mcp_server import mcp
 from binance_mcp_server.config import BinanceConfig
+
+
+class TransportType(str, Enum):
+    """Available transport types for the MCP server."""
+    stdio = "stdio"
+    streamable_http = "streamable-http"
+    sse = "sse"
 
 
 app = typer.Typer(
@@ -42,49 +50,29 @@ def binance_mcp_server(
         help="Use Binance testnet environment", 
         envvar="BINANCE_TESTNET"
     ),
-    transport: str = typer.Option(
-        "stdio",
+    transport: TransportType = typer.Option(
+        TransportType.stdio,
         "--transport",
-        help="Transport method to use (stdio or http)",
-        click_type=typer.Choice(["stdio", "http"])
+        help="Transport method to use (stdio, streamable-http, or sse)"
     ),
     port: int = typer.Option(
         8000,
         "--port",
         "-p",
-        help="Port for HTTP transport (only used with --transport http)"
+        help="Port for HTTP transport (only used with --transport streamable-http or sse)"
     ),
     host: str = typer.Option(
         "localhost",
         "--host",
         "-h", 
-        help="Host for HTTP transport (only used with --transport http)"
+        help="Host for HTTP transport (only used with --transport streamable-http or sse)"
     )
 ) -> None:
     """
     Start the Binance MCP server with the specified configuration.
-    
     This command initializes and runs the Binance MCP server using the Model Context
-    Protocol. It supports both STDIO and HTTP transports for maximum compatibility
-    with different MCP clients.
-    
-    Args:
-        api_key: Binance API key for authentication
-        api_secret: Binance API secret for authentication  
-        binance_testnet: Whether to use Binance testnet instead of production
-        transport: Communication transport method (stdio for MCP clients, http for testing)
-        port: Port number for HTTP transport
-        host: Host address for HTTP transport
-        
-    Examples:
-        # Start with STDIO transport (default, for MCP clients)
-        binance-mcp-server --api-key YOUR_KEY --api-secret YOUR_SECRET
-        
-        # Start with HTTP transport for testing
-        binance-mcp-server --transport http --port 8080
-        
-        # Use testnet environment
-        binance-mcp-server --binance-testnet
+    Protocol. It supports STDIO, streamable-http, and SSE transports for maximum 
+    compatibility with different MCP clients.
     """
     # Load environment variables from .env file
     load_dotenv()
@@ -112,20 +100,20 @@ def binance_mcp_server(
     
     # Display configuration summary
     typer.echo("🚀 Starting Binance MCP Server...")
-    typer.echo(f"📡 Transport: {transport.upper()}")
+    typer.echo(f"📡 Transport: {transport.value.upper()}")
     typer.echo(f"🌐 Environment: {'Testnet' if config.testnet else 'Production'}")
     typer.echo(f"🔗 Base URL: {config.base_url}")
     
-    if transport == "http":
+    if transport in [TransportType.streamable_http, TransportType.sse]:
         typer.echo(f"Server: http://{host}:{port}")
     else:
         typer.echo("STDIO mode: Ready for MCP client connections")
     
     try:
-        if transport == "stdio":
+        if transport == TransportType.stdio:
             mcp.run(transport="stdio")
         else:
-            mcp.run(transport="http", port=port, host=host)
+            mcp.run(transport=transport.value, port=port, host=host)
             
     except KeyboardInterrupt:
         typer.echo("\nServer stopped by user", err=True)
