@@ -12,6 +12,7 @@ import argparse
 from typing import Dict, Any
 from fastmcp import FastMCP
 from dotenv import load_dotenv
+from binance_mcp_server.utils import get_pyproject_version
 
 
 logging.basicConfig(
@@ -26,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 mcp = FastMCP(
     name="binance-mcp-server",
-    version="1.1.0",
+    version=get_pyproject_version(),
     description="MCP server for Binance cryptocurrency exchange API",
     instructions="""
     This server provides access to Binance cryptocurrency exchange functionality.
