@@ -203,5 +203,35 @@ def rate_limited(rate_limiter: Optional[RateLimiter] = None):
     return decorator
 
 
+def validate_symbol(symbol: str) -> str:
+    """
+    Validate and normalize trading symbol format.
+    
+    Args:
+        symbol: Trading pair symbol to validate
+        
+    Returns:
+        str: Normalized symbol in uppercase
+        
+    Raises:
+        ValueError: If symbol format is invalid
+    """
+    if not symbol or not isinstance(symbol, str):
+        raise ValueError("Symbol must be a non-empty string")
+    
+    # Normalize symbol format
+    symbol = symbol.upper().strip()
+    
+    # Basic validation
+    if len(symbol) < 3:
+        raise ValueError("Symbol must be at least 3 characters long")
+        
+    if not symbol.isalnum():
+        raise ValueError("Symbol must contain only alphanumeric characters")
+    
+    return symbol
+
+
+
 # Global rate limiter instance
 binance_rate_limiter = RateLimiter(max_calls=1200, window=60)

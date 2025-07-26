@@ -5,7 +5,6 @@ This module provides functionality to fetch current price data for trading symbo
 from the Binance exchange API.
 """
 
-import time
 import logging
 from typing import Dict, Any
 from binance.exceptions import BinanceAPIException, BinanceRequestException
@@ -14,39 +13,12 @@ from binance_mcp_server.utils import (
     create_error_response, 
     create_success_response,
     rate_limited,
-    binance_rate_limiter
+    binance_rate_limiter,
+    validate_symbol
 )
 
+
 logger = logging.getLogger(__name__)
-
-
-def validate_symbol(symbol: str) -> str:
-    """
-    Validate and normalize trading symbol format.
-    
-    Args:
-        symbol: Trading pair symbol to validate
-        
-    Returns:
-        str: Normalized symbol in uppercase
-        
-    Raises:
-        ValueError: If symbol format is invalid
-    """
-    if not symbol or not isinstance(symbol, str):
-        raise ValueError("Symbol must be a non-empty string")
-    
-    # Normalize symbol format
-    symbol = symbol.upper().strip()
-    
-    # Basic validation
-    if len(symbol) < 3:
-        raise ValueError("Symbol must be at least 3 characters long")
-        
-    if not symbol.isalnum():
-        raise ValueError("Symbol must contain only alphanumeric characters")
-    
-    return symbol
 
 
 @rate_limited(binance_rate_limiter)

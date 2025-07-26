@@ -5,11 +5,23 @@ This module provides the get_ticker tool for retrieving 24-hour price change
 statistics for trading symbols from the Binance API.
 """
 
+import logging
 from typing import Dict, Any
-from binance.exceptions import BinanceAPIException
-from binance_mcp_server.utils import get_binance_client
+from binance.exceptions import BinanceAPIException, BinanceRequestException
+from binance_mcp_server.utils import  (
+    get_binance_client, 
+    validate_symbol, 
+    rate_limited, 
+    binance_rate_limiter,
+    create_success_response,
+    create_error_response
+)
 
 
+logger = logging.getLogger(__name__)
+
+
+@rate_limited(binance_rate_limiter)
 def get_ticker(symbol: str) -> Dict[str, Any]:
     """
     Get 24-hour ticker price change statistics for a symbol.
@@ -19,12 +31,28 @@ def get_ticker(symbol: str) -> Dict[str, Any]:
         
     Returns:
         Dictionary containing 24-hour price statistics.
+        - success (bool): True if request was successful
+        - data (dict): Response data with price statistics
+        - timestamp (int): Unix timestamp of the response
+        - error (dict, optional): Error details if request failed
+
+    Examples:
+        result = get_ticker("BTCUSDT")
+        if result["success"]:
+            stats = result["data"]
+            print(f"24h price change for BTC: {stats['price_change']} ({stats['price_change_percent']}%)")
     """
+
+    logger.info(f"Fetching 24-hour ticker stats for symbol: {symbol}")
+
     try:
-        client = get_binance_client()
-        ticker = client.get_ticker(symbol=symbol.upper())
         
-        return {
+        normalized_symbol = validate_symbol(symbol)
+        
+        client = get_binance_client()
+        ticker = client.get_ticker(symbol=normalized_symbol)
+
+        response = {
             "symbol": ticker["symbol"],
             "price_change": float(ticker["priceChange"]),
             "price_change_percent": float(ticker["priceChangePercent"]),
@@ -43,14 +71,32 @@ def get_ticker(symbol: str) -> Dict[str, Any]:
             "count": ticker["count"]
         }
         
+        logger.info(f"Successfully fetched ticker stats for {symbol}")
+        return create_success_response(
+            data=response,
+            metadata={
+                "source": "binance_api",
+                "endpoint": "24h_ticker"
+            }
+        )
+        
+        
+    except ValueError as e:
+        error_msg = f"Invalid symbol format: {str(e)}"
+        logger.warning(f"Validation error for symbol '{symbol}': {error_msg}")
+        return create_error_response("validation_error", error_msg)
+        
     except BinanceAPIException as e:
-        return {
-            "error": "Binance API Error",
-            "message": str(e),
-            "code": getattr(e, 'code', 'UNKNOWN')
-        }
+        error_msg = f"Binance API error: {e.message}"
+        logger.error(f"API error for symbol '{symbol}': {error_msg}")
+        return create_error_response("api_error", error_msg, {"code": e.code})
+        
+    except BinanceRequestException as e:
+        error_msg = f"Network error: {str(e)}"
+        logger.error(f"Network error for symbol '{symbol}': {error_msg}")
+        return create_error_response("network_error", error_msg)
+        
     except Exception as e:
-        return {
-            "error": "Unexpected Error",
-            "message": str(e)
-        }
+        error_msg = f"Unexpected error: {str(e)}"
+        logger.error(f"Unexpected error for symbol '{symbol}': {error_msg}")
+        return create_error_response("internal_error", error_msg)
