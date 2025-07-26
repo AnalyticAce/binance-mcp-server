@@ -1,5 +1,3 @@
-[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/analyticace-binancemcpserver-badge.png)](https://mseep.ai/app/analyticace-binancemcpserver)
-
 # Binance MCP Server 🚀
 
 [![PyPI version](https://img.shields.io/pypi/v/binance-mcp-server.svg?style=flat&color=blue)](https://pypi.org/project/binance-mcp-server/) 
