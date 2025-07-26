@@ -1,6 +1,3 @@
----
-tools: ['get-library-docs', 'resolve-library-id', 'codebase', 'web_search', "fetch"]
----
 # Copilot Instructions - Best Development Practices
 
 This guide establishes development standards and best practices for our tech stack: Python, FastAPI, FastMCP. Following these practices ensures maintainable, sustainable, and high-quality systems.

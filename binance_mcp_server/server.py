@@ -6,25 +6,20 @@ the Binance cryptocurrency exchange API. It exposes Binance functionality as
 tools that can be called by LLM clients.
 """
 
-import os
-from typing import Optional, Dict, Any
+import sys
+import logging
+from typing import Dict, Any
 from fastmcp import FastMCP
-from binance.client import Client
-from binance.exceptions import BinanceAPIException
 
 
-def get_binance_client() -> Client:
-    """
-    Get the initialized Binance client.
-    
-    Returns:
-        The global Binance client instance.
-    """
-    return Client(
-        api_key=os.getenv("BINANCE_API_KEY") or os.getenv("api_key"),
-        api_secret=os.getenv("BINANCE_API_SECRET") or os.getenv("api_secret"),
-        testnet=os.getenv("BINANCE_TESTNET") or os.getenv("binance_testnet")
-    )
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    stream=sys.stderr  # Essential: Use stderr for STDIO servers
+)
+
+
+logger = logging.getLogger(__name__)
 
 
 mcp = FastMCP(
@@ -34,14 +29,12 @@ mcp = FastMCP(
     instructions="""
     This server provides access to Binance cryptocurrency exchange functionality.
     Available tools include:
-    - get_server_info: Get server status and configuration (helpful for debugging)
-    - get_account: Retrieve account information and balances (requires 'Enable Reading' permission)
     - get_ticker_price: Get current price for a trading symbol
-    - get_24hr_ticker: Get 24-hour price statistics for a symbol
-    - get_exchange_info: Get exchange trading rules and symbol information
+    - get_ticker: Get 24-hour price statistics for a symbol
+    - get_available_assets: Get exchange trading rules and symbol information
     
-    All operations respect Binance API rate limits and require valid API credentials.
-    If you're getting API errors, try check_api_permissions first to diagnose issues.
+    All operations respect Binance API rate limits and use proper configuration management.
+    Tools are implemented in dedicated modules for better maintainability.
     """
 )
 
@@ -49,34 +42,38 @@ mcp = FastMCP(
 @mcp.tool()
 def get_ticker_price(symbol: str) -> Dict[str, Any]:
     """
-    Get the current price for a trading symbol.
+    Get the current price for a trading symbol on Binance.
+    
+    This tool fetches real-time price data for any valid trading pair available
+    on Binance using the configured environment (production or testnet).
     
     Args:
-        symbol: Trading pair symbol (e.g., 'BTCUSDT', 'ETHUSDT')
+        symbol: Trading pair symbol in format BASEQUOTE (e.g., 'BTCUSDT', 'ETHBTC')
         
     Returns:
-        Dictionary containing current price information.
+        Dictionary containing success status, price data, and metadata
     """
+    logger.info(f"Tool called: get_ticker_price with symbol={symbol}")
+    
     try:
-        client = get_binance_client()
-        ticker = client.get_symbol_ticker(symbol=symbol.upper())
+        from binance_mcp_server.tools.get_ticker_price import get_ticker_price as _get_ticker_price
+        result = _get_ticker_price(symbol)
         
-        return {
-            "symbol": ticker["symbol"],
-            "price": float(ticker["price"]),
-            "timestamp": ticker.get("timestamp", "N/A")
-        }
+        if result.get("success"):
+            logger.info(f"Successfully fetched price for {symbol}")
+        else:
+            logger.warning(f"Failed to fetch price for {symbol}: {result.get('error', {}).get('message')}")
+            
+        return result
         
-    except BinanceAPIException as e:
-        return {
-            "error": "Binance API Error",
-            "message": str(e),
-            "code": getattr(e, 'code', 'UNKNOWN')
-        }
     except Exception as e:
+        logger.error(f"Unexpected error in get_ticker_price tool: {str(e)}")
         return {
-            "error": "Unexpected Error",
-            "message": str(e)
+            "success": False,
+            "error": {
+                "type": "tool_error",
+                "message": f"Tool execution failed: {str(e)}"
+            }
         }
 
 
@@ -89,77 +86,88 @@ def get_ticker(symbol: str) -> Dict[str, Any]:
         symbol: Trading pair symbol (e.g., 'BTCUSDT', 'ETHUSDT')
         
     Returns:
-        Dictionary containing 24-hour price statistics.
+        Dictionary containing 24-hour price statistics and metadata.
     """
+    logger.info(f"Tool called: get_ticker with symbol={symbol}")
+    
     try:
-        client = get_binance_client()
-        ticker = client.get_ticker(symbol=symbol.upper())
+        from binance_mcp_server.tools.get_ticker import get_ticker as _get_ticker
+        result = _get_ticker(symbol)
         
-        return {
-            "symbol": ticker["symbol"],
-            "price_change": float(ticker["priceChange"]),
-            "price_change_percent": float(ticker["priceChangePercent"]),
-            "weighted_avg_price": float(ticker["weightedAvgPrice"]),
-            "prev_close_price": float(ticker["prevClosePrice"]),
-            "last_price": float(ticker["lastPrice"]),
-            "bid_price": float(ticker["bidPrice"]),
-            "ask_price": float(ticker["askPrice"]),
-            "open_price": float(ticker["openPrice"]),
-            "high_price": float(ticker["highPrice"]),
-            "low_price": float(ticker["lowPrice"]),
-            "volume": float(ticker["volume"]),
-            "quote_volume": float(ticker["quoteVolume"]),
-            "open_time": ticker["openTime"],
-            "close_time": ticker["closeTime"],
-            "count": ticker["count"]
-        }
+        if result.get("success"):
+            logger.info(f"Successfully fetched ticker stats for {symbol}")
+        else:
+            logger.warning(f"Failed to fetch ticker stats for {symbol}: {result.get('error', {}).get('message')}")
+            
+        return result
         
-    except BinanceAPIException as e:
-        return {
-            "error": "Binance API Error",
-            "message": str(e),
-            "code": getattr(e, 'code', 'UNKNOWN')
-        }
     except Exception as e:
+        logger.error(f"Unexpected error in get_ticker tool: {str(e)}")
         return {
-            "error": "Unexpected Error",
-            "message": str(e)
+            "success": False,
+            "error": {
+                "type": "tool_error",
+                "message": f"Tool execution failed: {str(e)}"
+            }
         }
 
 
 @mcp.tool()
 def get_available_assets() -> Dict[str, Any]:
     """
-    Get a list of all available assets on Binance.
+    Get a list of all available assets and trading pairs on Binance.
     
     Returns:
-        Dictionary containing asset information.
+        Dictionary containing comprehensive exchange information and available assets.
     """
+    logger.info("Tool called: get_available_assets")
+    
     try:
-        client = get_binance_client()
-        exchange_info = client.get_exchange_info()
+        from binance_mcp_server.tools.get_available_assets import get_available_assets as _get_available_assets
+        result = _get_available_assets()
         
-        assets = {symbol["symbol"]: symbol for symbol in exchange_info["symbols"]}
+        if result.get("success"):
+            logger.info("Successfully fetched available assets")
+        else:
+            logger.warning(f"Failed to fetch available assets: {result.get('error', {}).get('message')}")
+            
+        return result
         
-        return {
-            "assets": assets,
-            "count": len(assets)
-        }
-        
-    except BinanceAPIException as e:
-        return {
-            "error": "Binance API Error",
-            "message": str(e),
-            "code": getattr(e, 'code', 'UNKNOWN')
-        }
     except Exception as e:
+        logger.error(f"Unexpected error in get_available_assets tool: {str(e)}")
         return {
-            "error": "Unexpected Error",
-            "message": str(e)
+            "success": False,
+            "error": {
+                "type": "tool_error",
+                "message": f"Tool execution failed: {str(e)}"
+            }
         }
 
 
 if __name__ == "__main__":
+    import argparse
     from dotenv import load_dotenv
+    
     load_dotenv()
-    mcp.run(transport="stdio")
+    
+    parser = argparse.ArgumentParser(description="Binance MCP Server")
+    parser.add_argument("--transport", choices=["stdio", "http"], default="stdio",
+                    help="Transport method to use")
+    parser.add_argument("--port", type=int, default=8000,
+                    help="Port for HTTP transport")
+    parser.add_argument("--host", type=str, default="localhost",
+                    help="Host for HTTP transport")
+    
+    args = parser.parse_args()
+    
+    logger.info(f"Starting Binance MCP Server with {args.transport} transport")
+    
+    try:
+        if args.transport == "stdio":
+            mcp.run(transport="stdio")
+        else:
+            logger.info(f"HTTP server starting on {args.host}:{args.port}")
+            mcp.run(transport="http", port=args.port, host=args.host)
+    except Exception as e:
+        logger.error(f"Server startup failed: {str(e)}")
+        sys.exit(1)
