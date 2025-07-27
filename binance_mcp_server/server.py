@@ -151,6 +151,41 @@ def get_available_assets() -> Dict[str, Any]:
         }
 
 
+@mcp.tool()
+def get_balance() -> Dict[str, Any]:
+    """
+    Get the current account balance for all assets on Binance.
+    
+    This tool retrieves the balances of all assets in the user's Binance account,
+    including available and locked amounts.
+    
+    Returns:
+        Dictionary containing success status, asset balances, and metadata.
+    """
+    logger.info("Tool called: get_balance")
+    
+    try:
+        from binance_mcp_server.tools.get_balance import get_balance as _get_balance
+        result = _get_balance()
+        
+        if result.get("success"):
+            logger.info("Successfully fetched account balances")
+        else:
+            logger.warning(f"Failed to fetch account balances: {result.get('error', {}).get('message')}")
+            
+        return result
+        
+    except Exception as e:
+        logger.error(f"Unexpected error in get_balance tool: {str(e)}")
+        return {
+            "success": False,
+            "error": {
+                "type": "tool_error",
+                "message": f"Tool execution failed: {str(e)}"
+            }
+        }
+
+
 def validate_configuration() -> bool:
     """
     Validate server configuration and dependencies.
