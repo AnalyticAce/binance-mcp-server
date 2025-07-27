@@ -31,7 +31,7 @@ def create_order(symbol: str, side: str, order_type: str, quantity: float, price
     Returns:
         Dictionary containing success status and order data.
     """
-    logger.info(f"Tool called: create_order with symbol={symbol}, side={side}, type={order_type}, quantity={quantity}, price={price}")
+    logger.info(f"Creating order: {symbol}, Side: {side}, Type: {order_type}, Quantity: {quantity}, Price: {price}")
 
     try:
         client = get_binance_client()
