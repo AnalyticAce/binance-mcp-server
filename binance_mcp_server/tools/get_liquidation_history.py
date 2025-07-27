@@ -31,8 +31,8 @@ def get_liquidation_history() -> Dict[str, Any]:
 
     except (BinanceAPIException, BinanceRequestException) as e:
         logger.error(f"Error fetching liquidation history: {str(e)}")
-        return create_error_response(f"Error fetching liquidation history: {str(e)}")
+        return create_error_response("binance_api_error", f"Error fetching liquidation history: {str(e)}")
 
     except Exception as e:
         logger.error(f"Unexpected error in get_liquidation_history tool: {str(e)}")
-        return create_error_response(f"Tool execution failed: {str(e)}")
+        return create_error_response("tool_error", f"Tool execution failed: {str(e)}")

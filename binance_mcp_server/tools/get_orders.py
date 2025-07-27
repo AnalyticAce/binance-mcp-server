@@ -42,8 +42,8 @@ def get_orders(symbol: str, start_time: Optional[int] = None, end_time: Optional
 
     except (BinanceAPIException, BinanceRequestException) as e:
         logger.error(f"Error fetching orders: {str(e)}")
-        return create_error_response(f"Error fetching orders: {str(e)}")
+        return create_error_response("binance_api_error", f"Error fetching orders: {str(e)}")
 
     except Exception as e:
         logger.error(f"Unexpected error in get_orders tool: {str(e)}")
-        return create_error_response(f"Tool execution failed: {str(e)}")
+        return create_error_response("tool_error", f"Tool execution failed: {str(e)}")

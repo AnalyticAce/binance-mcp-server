@@ -13,8 +13,6 @@ from typing import Dict, Any, Optional
 from fastmcp import FastMCP
 from dotenv import load_dotenv
 
-from binance_mcp_server.utils import OrderSide, OrderType
-
 
 logging.basicConfig(
     level=logging.INFO,
@@ -296,8 +294,8 @@ def get_pnl() -> Dict[str, Any]:
 @mcp.tool()
 def create_order(
     symbol: str,
-    side: OrderSide,
-    order_type: OrderType,
+    side: str,
+    order_type: str,
     quantity: float,
     price: Optional[float] = None,
 ) -> Dict[str, Any]:
@@ -370,6 +368,146 @@ def get_liquidation_history() -> Dict[str, Any]:
                 "message": f"Tool execution failed: {str(e)}"
             }
         }
+
+@mcp.tool()
+def get_deposit_address(coin: str) -> Dict[str, Any]:
+    """
+    Get the deposit address for a specific coin on the user's Binance account.
+    
+    Args:
+        coin (str): The coin for which to fetch the deposit address.
+        
+    Returns:
+        Dictionary containing success status and deposit address data.
+    """
+    logger.info(f"Tool called: get_deposit_address with coin={coin}")
+    
+    try:
+        from binance_mcp_server.tools.get_deposit_address import get_deposit_address as _get_deposit_address
+        result = _get_deposit_address(coin)
+        
+        if result.get("success"):
+            logger.info(f"Successfully fetched deposit address for {coin}")
+        else:
+            logger.warning(f"Failed to fetch deposit address for {coin}: {result.get('error', {}).get('message')}")
+            
+        return result
+        
+    except Exception as e:
+        logger.error(f"Unexpected error in get_deposit_address tool: {str(e)}")
+        return {
+            "success": False,
+            "error": {
+                "type": "tool_error",
+                "message": f"Tool execution failed: {str(e)}"
+            }
+        }
+
+
+@mcp.tool()
+def get_deposit_history(coin: str) -> Dict[str, Any]:
+    """
+    Get the deposit history for a specific coin on the user's Binance account.
+    
+    Args:
+        coin (str): The coin for which to fetch the deposit history.
+        
+    Returns:
+        Dictionary containing success status and deposit history data.
+    """
+    logger.info(f"Tool called: get_deposit_history with coin={coin}")
+    
+    try:
+        from binance_mcp_server.tools.get_deposit_history import get_deposit_history as _get_deposit_history
+        result = _get_deposit_history(coin)
+        
+        if result.get("success"):
+            logger.info(f"Successfully fetched deposit history for {coin}")
+        else:
+            logger.warning(f"Failed to fetch deposit history for {coin}: {result.get('error', {}).get('message')}")
+            
+        return result
+        
+    except Exception as e:
+        logger.error(f"Unexpected error in get_deposit_history tool: {str(e)}")
+        return {
+            "success": False,
+            "error": {
+                "type": "tool_error",
+                "message": f"Tool execution failed: {str(e)}"
+            }
+        }
+
+
+@mcp.tool()
+def get_withdraw_history(coin: str) -> Dict[str, Any]:
+    """
+    Get the withdrawal history for the user's Binance account.
+    
+    Args:
+        coin (Optional[str]): The coin for which to fetch the withdrawal history. Defaults to 'BTC'.
+        
+    Returns:
+        Dictionary containing success status and withdrawal history data.
+    """
+    logger.info(f"Tool called: get_withdraw_history with coin={coin}")
+    
+    try:
+        from binance_mcp_server.tools.get_withdraw_history import get_withdraw_history as _get_withdraw_history
+        result = _get_withdraw_history(coin)
+        
+        if result.get("success"):
+            logger.info(f"Successfully fetched withdrawal history for {coin}")
+        else:
+            logger.warning(f"Failed to fetch withdrawal history for {coin}: {result.get('error', {}).get('message')}")
+            
+        return result
+        
+    except Exception as e:
+        logger.error(f"Unexpected error in get_withdraw_history tool: {str(e)}")
+        return {
+            "success": False,
+            "error": {
+                "type": "tool_error",
+                "message": f"Tool execution failed: {str(e)}"
+            }
+        }
+
+
+@mcp.tool()
+def get_account_snapshot(account_type: str = "SPOT") -> Dict[str, Any]:
+    """
+    Get the account snapshot for the user's Binance account.
+    
+    Args:
+        account_type (str): The account type to filter the snapshot. Defaults to "SPOT".
+        
+    Returns:
+        Dictionary containing success status and account snapshot data.
+    """
+    logger.info(f"Tool called: get_account_snapshot with account_type={account_type}")
+    
+    try:
+        from binance_mcp_server.tools.get_account_snapshot import get_account_snapshot as _get_account_snapshot
+        result = _get_account_snapshot(account_type)
+        
+        if result.get("success"):
+            logger.info(f"Successfully fetched account snapshot for {account_type} account")
+        else:
+            logger.warning(f"Failed to fetch account snapshot for {account_type}: {result.get('error', {}).get('message')}")
+            
+        return result
+        
+    except Exception as e:
+        logger.error(f"Unexpected error in get_account_snapshot tool: {str(e)}")
+        return {
+            "success": False,
+            "error": {
+                "type": "tool_error",
+                "message": f"Tool execution failed: {str(e)}"
+            }
+        }
+
 
 
 def validate_configuration() -> bool:
@@ -474,6 +612,7 @@ def main() -> None:
         logger.info("HTTP mode is primarily for testing. Use STDIO for MCP clients.")
     else:
         logger.info("STDIO mode: Ready for MCP client connections")
+    
     
     try:
         if args.transport == "stdio":

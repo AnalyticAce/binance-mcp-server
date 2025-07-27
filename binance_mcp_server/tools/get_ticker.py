@@ -88,8 +88,8 @@ def get_ticker(symbol: str) -> Dict[str, Any]:
         
     except (BinanceAPIException, BinanceRequestException) as e:
         logger.error(f"Error fetching ticker stats: {str(e)}")
-        return create_error_response(f"Error fetching ticker stats: {str(e)}")
+        return create_error_response("binance_api_error", f"Error fetching ticker stats: {str(e)}")
 
     except Exception as e:
         logger.error(f"Unexpected error in get_ticker tool: {str(e)}")
-        return create_error_response(f"Tool execution failed: {str(e)}")
+        return create_error_response("tool_error", f"Tool execution failed: {str(e)}")

@@ -43,7 +43,7 @@ def create_order(symbol: str, side: OrderSide, order_type: OrderType, quantity: 
         order_type = validate_and_get_order_type(order_type)
         
         if quantity <= 0:
-            return create_error_response("Invalid quantity. Must be greater than zero.")
+            return create_error_response("validation_error", "Invalid quantity. Must be greater than zero.")
         
         order = client.create_order(
             symbol=normalized_symbol,
@@ -57,8 +57,8 @@ def create_order(symbol: str, side: OrderSide, order_type: OrderType, quantity: 
 
     except (BinanceAPIException, BinanceRequestException) as e:
         logger.error(f"Error creating order: {str(e)}")
-        return create_error_response(f"Error creating order: {str(e)}")
+        return create_error_response("binance_api_error", f"Error creating order: {str(e)}")
 
     except Exception as e:
         logger.error(f"Unexpected error in create_order tool: {str(e)}")
-        return create_error_response(f"Tool execution failed: {str(e)}")
+        return create_error_response("tool_error", f"Tool execution failed: {str(e)}")

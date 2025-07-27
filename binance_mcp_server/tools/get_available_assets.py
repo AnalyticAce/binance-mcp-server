@@ -42,8 +42,8 @@ def get_available_assets() -> Dict[str, Any]:
 
     except (BinanceAPIException, BinanceRequestException) as e:
         logger.error(f"Error fetching available assets: {str(e)}")
-        return create_error_response(f"Error fetching available assets: {str(e)}")
+        return create_error_response("binance_api_error", f"Error fetching available assets: {str(e)}")
 
     except Exception as e:
         logger.error(f"Unexpected error in get_available_assets tool: {str(e)}")
-        return create_error_response(f"Tool execution failed: {str(e)}")
+        return create_error_response("tool_error", f"Tool execution failed: {str(e)}")

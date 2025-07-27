@@ -32,8 +32,8 @@ def get_position_info() -> Dict[str, Any]:
 
     except (BinanceAPIException, BinanceRequestException) as e:
         logger.error(f"Error fetching position info: {str(e)}")
-        return create_error_response(f"Error fetching position info: {str(e)}")
+        return create_error_response("binance_api_error", f"Error fetching position info: {str(e)}")
 
     except Exception as e:
         logger.error(f"Unexpected error in get_position_info tool: {str(e)}")
-        return create_error_response(f"Tool execution failed: {str(e)}")
+        return create_error_response("tool_error", f"Tool execution failed: {str(e)}")
