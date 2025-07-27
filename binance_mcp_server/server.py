@@ -223,6 +223,40 @@ def get_orders(symbol: str, start_time: Optional[int] = None, end_time: Optional
         }
 
 
+@mcp.tool()
+def get_position_info() -> Dict[str, Any]:
+    """
+    Get the current position information for the user on Binance.
+    
+    This tool retrieves the user's current positions in futures trading.
+    
+    Returns:
+        Dictionary containing success status, position data, and metadata.
+    """
+    logger.info("Tool called: get_position_info")
+    
+    try:
+        from binance_mcp_server.tools.get_position_info import get_position_info as _get_position_info
+        result = _get_position_info()
+        
+        if result.get("success"):
+            logger.info("Successfully fetched position info")
+        else:
+            logger.warning(f"Failed to fetch position info: {result.get('error', {}).get('message')}")
+            
+        return result
+        
+    except Exception as e:
+        logger.error(f"Unexpected error in get_position_info tool: {str(e)}")
+        return {
+            "success": False,
+            "error": {
+                "type": "tool_error",
+                "message": f"Tool execution failed: {str(e)}"
+            }
+        }
+
+
 def validate_configuration() -> bool:
     """
     Validate server configuration and dependencies.
@@ -325,7 +359,6 @@ def main() -> None:
         logger.info("HTTP mode is primarily for testing. Use STDIO for MCP clients.")
     else:
         logger.info("STDIO mode: Ready for MCP client connections")
-    
     
     try:
         if args.transport == "stdio":

@@ -79,12 +79,7 @@ def get_ticker_price(symbol: str) -> Dict[str, Any]:
         error_msg = f"Binance API error: {e.message}"
         logger.error(f"API error for symbol '{symbol}': {error_msg}")
         return create_error_response("api_error", error_msg, {"code": e.code})
-        
-    except BinanceRequestException as e:
-        error_msg = f"Network error: {str(e)}"
-        logger.error(f"Network error for symbol '{symbol}': {error_msg}")
-        return create_error_response("network_error", error_msg)
-        
+
     except Exception as e:
         error_msg = f"Unexpected error: {str(e)}"
         logger.error(f"Unexpected error for symbol '{symbol}': {error_msg}")
