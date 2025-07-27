@@ -9,7 +9,7 @@ tools that can be called by LLM clients.
 import sys
 import logging
 import argparse
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 from fastmcp import FastMCP
 from dotenv import load_dotenv
 
@@ -187,22 +187,24 @@ def get_balance() -> Dict[str, Any]:
 
 
 @mcp.tool()
-def get_orders(symbol: str) -> Dict[str, Any]:
+def get_orders(symbol: str, start_time: Optional[int] = None, end_time: Optional[int] = None) -> Dict[str, Any]:
     """
     Get all orders for a specific trading symbol on Binance.
     
     Args:
         symbol: Trading pair symbol (e.g., 'BTCUSDT', 'ETHUSDT')
+        start_time: Optional start time for filtering orders (Unix timestamp)
+        end_time: Optional end time for filtering orders (Unix timestamp)
         
     Returns:
         Dictionary containing success status, order data, and metadata.
     """
-    logger.info(f"Tool called: get_orders with symbol={symbol}")
+    logger.info(f"Tool called: get_orders with symbol={symbol}, start_time={start_time}, end_time={end_time}")
     
     try:
-        from binance_mcp_server.tools.get_orders import get_oders as _get_orders
-        result = _get_orders(symbol)
-        
+        from binance_mcp_server.tools.get_orders import get_orders as _get_orders
+        result = _get_orders(symbol, start_time=start_time, end_time=end_time)
+
         if result.get("success"):
             logger.info(f"Successfully fetched orders for {symbol}")
         else:
