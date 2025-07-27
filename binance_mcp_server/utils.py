@@ -69,7 +69,7 @@ def get_binance_client() -> Client:
         client = Client(
             api_key=config.api_key,
             api_secret=config.api_secret,
-            testnet=config.testnet
+            # testnet=config.testnet
         )
         
         # Test connection
@@ -79,7 +79,7 @@ def get_binance_client() -> Client:
         return client
         
     except BinanceAPIException as e:
-        error_msg = f"Binance API error during client initialization: {e.message}"
+        error_msg = f"Binance API error during client initialization: {str(e)}"
         logger.error(error_msg)
         raise RuntimeError(error_msg) from e
     except BinanceRequestException as e:

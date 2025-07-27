@@ -53,13 +53,12 @@ def get_balance() -> Dict[str, Any]:
         logger.info("Successfully fetched account balances")
         
         return create_success_response(
-            data=balances,
-            timestamp=account_info.get("updateTime", None)
+            data=balances
         )
 
     except BinanceAPIException as e:
-        error_msg = f"Binance API Error: {e.message}"
-        logger.error(f"Binance API error: {e}")
+        error_msg = f"Binance API Error: {str(e)}"
+        logger.error(f"Binance API error: {str(e)}")
         return create_error_response(
             "api_error", 
             error_msg, {"code": e.code}
@@ -67,4 +66,4 @@ def get_balance() -> Dict[str, Any]:
 
     except Exception as e:
         logger.error(f"Unexpected error: {e}")
-        return create_error_response("internal_error", str(e.message))
+        return create_error_response("internal_error", str(e))

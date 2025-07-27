@@ -186,6 +186,41 @@ def get_balance() -> Dict[str, Any]:
         }
 
 
+@mcp.tool()
+def get_orders(symbol: str) -> Dict[str, Any]:
+    """
+    Get all orders for a specific trading symbol on Binance.
+    
+    Args:
+        symbol: Trading pair symbol (e.g., 'BTCUSDT', 'ETHUSDT')
+        
+    Returns:
+        Dictionary containing success status, order data, and metadata.
+    """
+    logger.info(f"Tool called: get_orders with symbol={symbol}")
+    
+    try:
+        from binance_mcp_server.tools.get_orders import get_oders as _get_orders
+        result = _get_orders(symbol)
+        
+        if result.get("success"):
+            logger.info(f"Successfully fetched orders for {symbol}")
+        else:
+            logger.warning(f"Failed to fetch orders for {symbol}: {result.get('error', {}).get('message')}")
+            
+        return result
+        
+    except Exception as e:
+        logger.error(f"Unexpected error in get_orders tool: {str(e)}")
+        return {
+            "success": False,
+            "error": {
+                "type": "tool_error",
+                "message": f"Tool execution failed: {str(e)}"
+            }
+        }
+
+
 def validate_configuration() -> bool:
     """
     Validate server configuration and dependencies.
