@@ -14,7 +14,6 @@ from binance_mcp_server.utils import (
 logger = logging.getLogger(__name__)
 
 
-
 @rate_limited(binance_rate_limiter)
 def get_position_info() -> Dict[str, Any]:
     """

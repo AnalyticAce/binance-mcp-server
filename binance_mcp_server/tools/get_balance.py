@@ -56,14 +56,10 @@ def get_balance() -> Dict[str, Any]:
             data=balances
         )
 
-    except BinanceAPIException as e:
-        error_msg = f"Binance API Error: {str(e)}"
-        logger.error(f"Binance API error: {str(e)}")
-        return create_error_response(
-            "api_error", 
-            error_msg, {"code": e.code}
-        )
+    except (BinanceAPIException, BinanceRequestException) as e:
+        logger.error(f"Error fetching account assets: {str(e)}")
+        return create_error_response(f"Error fetching account assets: {str(e)}")
 
     except Exception as e:
-        logger.error(f"Unexpected error: {e}")
-        return create_error_response("internal_error", str(e))
+        logger.error(f"Unexpected error in get_account_assets tool: {str(e)}")
+        return create_error_response(f"Tool execution failed: {str(e)}")

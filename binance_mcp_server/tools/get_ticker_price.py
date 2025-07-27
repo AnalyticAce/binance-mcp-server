@@ -75,12 +75,10 @@ def get_ticker_price(symbol: str) -> Dict[str, Any]:
         logger.warning(f"Validation error for symbol '{symbol}': {error_msg}")
         return create_error_response("validation_error", error_msg)
         
-    except BinanceAPIException as e:
-        error_msg = f"Binance API error: {e.message}"
-        logger.error(f"API error for symbol '{symbol}': {error_msg}")
-        return create_error_response("api_error", error_msg, {"code": e.code})
+    except (BinanceAPIException, BinanceRequestException) as e:
+        logger.error(f"Error fetching ticker price: {str(e)}")
+        return create_error_response(f"Error fetching ticker price: {str(e)}")
 
     except Exception as e:
-        error_msg = f"Unexpected error: {str(e)}"
-        logger.error(f"Unexpected error for symbol '{symbol}': {error_msg}")
-        return create_error_response("internal_error", error_msg)
+        logger.error(f"Unexpected error in get_ticker_price tool: {str(e)}")
+        return create_error_response(f"Tool execution failed: {str(e)}")

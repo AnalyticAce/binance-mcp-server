@@ -40,14 +40,10 @@ def get_orders(symbol: str, start_time: Optional[int] = None, end_time: Optional
             data=response_data
         )
 
-    except BinanceAPIException as e:
-        error_msg = f"Binance API Error: {e.message}"
-        logger.error(f"Binance API error: {e}")
-        return create_error_response(
-            "api_error",
-            error_msg, {"code": e.code}
-        )
+    except (BinanceAPIException, BinanceRequestException) as e:
+        logger.error(f"Error fetching orders: {str(e)}")
+        return create_error_response(f"Error fetching orders: {str(e)}")
 
     except Exception as e:
-        logger.error(f"Unexpected error: {e}")
-        return create_error_response("internal_error", str(e))
+        logger.error(f"Unexpected error in get_orders tool: {str(e)}")
+        return create_error_response(f"Tool execution failed: {str(e)}")

@@ -257,6 +257,40 @@ def get_position_info() -> Dict[str, Any]:
         }
 
 
+@mcp.tool()
+def get_pnl() -> Dict[str, Any]:
+    """
+    Get the current profit and loss (PnL) information for the user on Binance.
+    
+    This tool retrieves the user's PnL data for futures trading.
+    
+    Returns:
+        Dictionary containing success status, PnL data, and metadata.
+    """
+    logger.info("Tool called: get_pnl")
+    
+    try:
+        from binance_mcp_server.tools.get_pnl import get_pnl as _get_pnl
+        result = _get_pnl()
+        
+        if result.get("success"):
+            logger.info("Successfully fetched PnL info")
+        else:
+            logger.warning(f"Failed to fetch PnL info: {result.get('error', {}).get('message')}")
+            
+        return result
+        
+    except Exception as e:
+        logger.error(f"Unexpected error in get_pnl tool: {str(e)}")
+        return {
+            "success": False,
+            "error": {
+                "type": "tool_error",
+                "message": f"Tool execution failed: {str(e)}"
+            }
+        }
+
+
 def validate_configuration() -> bool:
     """
     Validate server configuration and dependencies.
