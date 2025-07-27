@@ -338,6 +338,40 @@ def create_order(
         }
 
 
+@mcp.tool()
+def get_liquidation_history() -> Dict[str, Any]:
+    """
+    Get the liquidation history on Binance account.
+    
+    This tool retrieves the user's liquidation orders in futures trading.
+    
+    Returns:
+        Dictionary containing success status and liquidation history data.
+    """
+    logger.info("Tool called: get_liquidation_history")
+    
+    try:
+        from binance_mcp_server.tools.get_liquidation_history import get_liquidation_history as _get_liquidation_history
+        result = _get_liquidation_history()
+        
+        if result.get("success"):
+            logger.info("Successfully fetched liquidation history")
+        else:
+            logger.warning(f"Failed to fetch liquidation history: {result.get('error', {}).get('message')}")
+            
+        return result
+        
+    except Exception as e:
+        logger.error(f"Unexpected error in get_liquidation_history tool: {str(e)}")
+        return {
+            "success": False,
+            "error": {
+                "type": "tool_error",
+                "message": f"Tool execution failed: {str(e)}"
+            }
+        }
+
+
 def validate_configuration() -> bool:
     """
     Validate server configuration and dependencies.
