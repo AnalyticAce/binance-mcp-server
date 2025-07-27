@@ -326,23 +326,23 @@ def validate_and_get_order_type(order_type: str) -> Any:
         raise ValueError("Invalid order type. Must be 'LIMIT' or 'MARKET', 'STOP_LOSS', 'STOP_LOSS_LIMIT', 'TAKE_PROFIT', 'TAKE_PROFIT_LIMIT', or 'LIMIT_MAKER'.")
 
 
-def validate_and_get_account_type(account_type: str) -> Any:
-    """
-    Validate and normalize account type.
+# def validate_and_get_account_type(account_type: str) -> Any:
+#     """
+#     Validate and normalize account type.
     
-    Args:
-        account_type: Account type to validate (e.g., 'SPOT', 'MARGIN', 'FUTURES')
-    Returns:
-        Any: Normalized account type constant from AccountType enum
-    """
-    if account_type == "SPOT":
-        return AccountType.SPOT
-    elif account_type == "MARGIN":
-        return AccountType.MARGIN
-    elif account_type == "FUTURES":
-        return AccountType.FUTURES
-    elif any(account for account in AccountType if account.value != account_type):
-        raise ValueError("Invalid account type. Must be 'SPOT', 'MARGIN', or 'FUTURES'.")
+#     Args:
+#         account_type: Account type to validate (e.g., 'SPOT', 'MARGIN', 'FUTURES')
+#     Returns:
+#         Any: Normalized account type constant from AccountType enum
+#     """
+#     if account_type == "SPOT":
+#         return AccountType.SPOT
+#     elif account_type == "MARGIN":
+#         return AccountType.MARGIN
+#     elif account_type == "FUTURES":
+#         return AccountType.FUTURES
+#     elif any(account for account in AccountType if account.value != account_type):
+#         raise ValueError("Invalid account type. Must be 'SPOT', 'MARGIN', or 'FUTURES'.")
 
 
 

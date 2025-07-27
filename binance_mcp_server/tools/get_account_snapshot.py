@@ -7,7 +7,7 @@ from binance_mcp_server.utils import (
     create_success_response,
     rate_limited,
     binance_rate_limiter,
-    validate_and_get_account_type
+    # validate_and_get_account_type
 )
 
 
@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 @rate_limited(binance_rate_limiter)
-def get_account_snapshot(account_type: str = "SPOT") -> Dict[str, Any]:
+def get_account_snapshot(account_type: str) -> Dict[str, Any]:
     """
     Get the account snapshot for the user's Binance account.
 
@@ -30,7 +30,7 @@ def get_account_snapshot(account_type: str = "SPOT") -> Dict[str, Any]:
     try:
         client = get_binance_client()
         
-        account_type = validate_and_get_account_type(account_type)
+        # account_type = validate_and_get_account_type(account_type)
         
         snapshot = client.get_account_snapshot(type=account_type)
 
