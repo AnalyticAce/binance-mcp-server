@@ -13,6 +13,8 @@ from typing import Dict, Any, Optional
 from fastmcp import FastMCP
 from dotenv import load_dotenv
 
+from binance_mcp_server.utils import OrderSide, OrderType
+
 
 logging.basicConfig(
     level=logging.INFO,
@@ -294,8 +296,8 @@ def get_pnl() -> Dict[str, Any]:
 @mcp.tool()
 def create_order(
     symbol: str,
-    side: str,
-    order_type: str,
+    side: OrderSide,
+    order_type: OrderType,
     quantity: float,
     price: Optional[float] = None,
 ) -> Dict[str, Any]:

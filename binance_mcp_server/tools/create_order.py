@@ -9,7 +9,9 @@ from binance_mcp_server.utils import (
     binance_rate_limiter,
     validate_symbol,
     validate_and_get_order_side,
-    validate_and_get_order_type
+    validate_and_get_order_type,
+    OrderSide,
+    OrderType
 )
 
 
@@ -17,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 
 @rate_limited(binance_rate_limiter)
-def create_order(symbol: str, side: str, order_type: str, quantity: float, price: Optional[float] = None) -> Dict[str, Any]:
+def create_order(symbol: str, side: OrderSide, order_type: OrderType, quantity: float, price: Optional[float] = None) -> Dict[str, Any]:
     """
     Create a new order on Binance.
 
