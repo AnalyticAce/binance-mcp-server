@@ -22,7 +22,7 @@ def get_position_info() -> Dict[str, Any]:
     Returns:
         Dictionary containing success status, position data, and metadata.
     """
-    logger.info("Tool called: get_position_info")
+    logger.info("Fetching position information from Binance")
 
     try:
         client = get_binance_client()

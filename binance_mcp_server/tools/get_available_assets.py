@@ -27,7 +27,7 @@ def get_available_assets() -> Dict[str, Any]:
     Returns:
         Dictionary containing asset information.
     """
-    logger.info("Tool called: get_available_assets")
+    logger.info("Fetching available assets from Binance")
 
     try:
         client = get_binance_client()

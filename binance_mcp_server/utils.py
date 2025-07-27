@@ -12,13 +12,48 @@ from functools import wraps
 from binance.client import Client
 from binance.exceptions import BinanceAPIException, BinanceRequestException
 from binance_mcp_server.config import BinanceConfig
-
+from enum import Enum as PyEnum
 
 logger = logging.getLogger(__name__)
 
 
 # Global configuration instance
 _config: Optional[BinanceConfig] = None
+
+
+class OrderSide(PyEnum):
+    """
+    Enum for order side types.
+    
+    Attributes:
+        BUY: Buy order
+        SELL: Sell order
+    """
+    SIDE_BUY = 'BUY'
+    SIDE_SELL = 'SELL'
+
+
+class OrderType(PyEnum):
+    """
+    Enum for order types.
+    
+    Attributes:
+        ORDER_TYPE_LIMIT: Limit order
+        ORDER_TYPE_MARKET: Market order
+        ORDER_TYPE_STOP_LOSS: Stop loss order
+        ORDER_TYPE_STOP_LOSS_LIMIT: Stop loss limit order
+        ORDER_TYPE_TAKE_PROFIT: Take profit order
+        ORDER_TYPE_TAKE_PROFIT_LIMIT: Take profit limit order
+        ORDER_TYPE_LIMIT_MAKER: Limit maker order
+    """
+    ORDER_TYPE_LIMIT = 'LIMIT'
+    ORDER_TYPE_MARKET = 'MARKET'
+    ORDER_TYPE_STOP_LOSS = 'STOP_LOSS'
+    ORDER_TYPE_STOP_LOSS_LIMIT = 'STOP_LOSS_LIMIT'
+    ORDER_TYPE_TAKE_PROFIT = 'TAKE_PROFIT'
+    ORDER_TYPE_TAKE_PROFIT_LIMIT = 'TAKE_PROFIT_LIMIT'
+    ORDER_TYPE_LIMIT_MAKER = 'LIMIT_MAKER'
+
 
 
 def get_config() -> BinanceConfig:
@@ -231,6 +266,51 @@ def validate_symbol(symbol: str) -> str:
     
     return symbol
 
+
+def validate_and_get_order_side(side: str) -> Any:
+    """
+    Validate and normalize order side.
+    
+    Args:
+        side: Order side to validate ('BUY' or 'SELL')
+
+    Returns:
+        Any: Normalized order side constant from OrderSide enum
+    """
+    if side == "BUY":
+        return Client.SIDE_BUY
+    elif side == "SELL":
+        return Client.SIDE_SELL
+    elif side not in (OrderSide.SIDE_BUY.value, OrderSide.SIDE_SELL.value):
+        raise ValueError("Invalid order side. Must be 'BUY' or 'SELL'.")
+
+
+def validate_and_get_order_type(order_type: str) -> Any:
+    """
+    Validate and normalize order type.
+    
+    Args:
+        order_type: Order type to validate (e.g., 'LIMIT', 'MARKET')
+
+    Returns:
+        Any: Normalized order type constant from OrderType enum
+    """
+    if order_type == "LIMIT":
+        return Client.ORDER_TYPE_LIMIT
+    elif order_type == "MARKET":
+        return Client.ORDER_TYPE_MARKET
+    elif order_type == "STOP_LOSS":
+        return Client.ORDER_TYPE_STOP_LOSS
+    elif order_type == "STOP_LOSS_LIMIT":
+        return Client.ORDER_TYPE_STOP_LOSS_LIMIT
+    elif order_type == "TAKE_PROFIT":
+        return Client.ORDER_TYPE_TAKE_PROFIT
+    elif order_type == "TAKE_PROFIT_LIMIT":
+        return Client.ORDER_TYPE_TAKE_PROFIT_LIMIT
+    elif order_type == "LIMIT_MAKER":
+        return Client.ORDER_TYPE_LIMIT_MAKER
+    elif any(order for order in OrderType if order.value != order_type):
+        raise ValueError("Invalid order type. Must be 'LIMIT' or 'MARKET', 'STOP_LOSS', 'STOP_LOSS_LIMIT', 'TAKE_PROFIT', 'TAKE_PROFIT_LIMIT', or 'LIMIT_MAKER'.")
 
 
 # Global rate limiter instance

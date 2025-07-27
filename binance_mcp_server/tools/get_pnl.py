@@ -22,7 +22,7 @@ def get_pnl() -> Dict[str, Any]:
     Returns:
         Dictionary containing success status, PnL data, and metadata.
     """
-    logger.info("Tool called: get_pnl")
+    logger.info("Fetching PnL information from Binance")
 
     try:
         client = get_binance_client()

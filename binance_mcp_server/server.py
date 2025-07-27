@@ -291,6 +291,51 @@ def get_pnl() -> Dict[str, Any]:
         }
 
 
+@mcp.tool()
+def create_order(
+    symbol: str,
+    side: str,
+    order_type: str,
+    quantity: float,
+    price: Optional[float] = None,
+) -> Dict[str, Any]:
+    """
+    Create a new order on Binance.
+    
+    Args:
+        symbol: Trading pair symbol (e.g., 'BTCUSDT').
+        side: Order side ('BUY' or 'SELL').
+        order_type: Type of order ('LIMIT', 'MARKET', etc.).
+        quantity: Quantity of the asset to buy/sell.
+        price: Price for limit orders (optional).
+        
+    Returns:
+        Dictionary containing success status and order data.
+    """
+    logger.info(f"Tool called: create_order with symbol={symbol}, side={side}, type={order_type}, quantity={quantity}, price={price}")
+    
+    try:
+        from binance_mcp_server.tools.create_order import create_order as _create_order
+        result = _create_order(symbol, side, order_type, quantity, price)
+        
+        if result.get("success"):
+            logger.info(f"Successfully created order for {symbol}")
+        else:
+            logger.warning(f"Failed to create order for {symbol}: {result.get('error', {}).get('message')}")
+            
+        return result
+        
+    except Exception as e:
+        logger.error(f"Unexpected error in create_order tool: {str(e)}")
+        return {
+            "success": False,
+            "error": {
+                "type": "tool_error",
+                "message": f"Tool execution failed: {str(e)}"
+            }
+        }
+
+
 def validate_configuration() -> bool:
     """
     Validate server configuration and dependencies.
