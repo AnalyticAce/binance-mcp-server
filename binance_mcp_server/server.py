@@ -27,22 +27,17 @@ logger = logging.getLogger(__name__)
 mcp = FastMCP(
     name="binance-mcp-server",
     version="1.2.4",
-    description="MCP server for Binance cryptocurrency exchange API",
     instructions="""
     This server provides access to Binance cryptocurrency exchange functionality.
     Available tools include:
     - get_ticker_price: Get current price for a trading symbol
     - get_ticker: Get 24-hour price statistics for a symbol
     - get_available_assets: Get exchange trading rules and symbol information
+    - get_fee_info: Get trading fee rates (maker/taker commissions) for symbols
     
     All operations respect Binance API rate limits and use proper configuration management.
     Tools are implemented in dedicated modules for better maintainability.
-    """,
-    capabilities={
-        "tools": {"listChanged": True},
-        "resources": {},
-        "prompts": {}
-    }
+    """
 )
 
 
@@ -500,6 +495,48 @@ def get_account_snapshot(account_type: str = "SPOT") -> Dict[str, Any]:
         
     except Exception as e:
         logger.error(f"Unexpected error in get_account_snapshot tool: {str(e)}")
+        return {
+            "success": False,
+            "error": {
+                "type": "tool_error",
+                "message": f"Tool execution failed: {str(e)}"
+            }
+        }
+
+
+@mcp.tool()
+def get_fee_info(symbol: Optional[str] = None) -> Dict[str, Any]:
+    """
+    Get trading fee information for symbols on Binance.
+    
+    This tool retrieves trading fee rates including maker and taker commissions
+    for spot trading. Fee information is essential for calculating trading costs
+    and optimizing trading strategies.
+    
+    Args:
+        symbol (Optional[str]): Specific trading pair symbol to get fees for.
+                               If not provided, returns fees for all symbols.
+                               Format: 'BTCUSDT', 'ETHUSDT', etc.
+        
+    Returns:
+        Dictionary containing success status, fee data, and metadata.
+    """
+    logger.info(f"Tool called: get_fee_info with symbol={symbol}")
+    
+    try:
+        from binance_mcp_server.tools.get_fee_info import get_fee_info as _get_fee_info
+        result = _get_fee_info(symbol)
+        
+        if result.get("success"):
+            fee_count = len(result.get("data", []))
+            logger.info(f"Successfully fetched fee information for {fee_count} symbol(s)")
+        else:
+            logger.warning(f"Failed to fetch fee information: {result.get('error', {}).get('message')}")
+            
+        return result
+        
+    except Exception as e:
+        logger.error(f"Unexpected error in get_fee_info tool: {str(e)}")
         return {
             "success": False,
             "error": {
