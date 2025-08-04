@@ -21,6 +21,28 @@
   --md-accent-fg-color: #F0B90B;
 }
 
+/* Dark mode header and navigation styling */
+[data-md-color-scheme="slate"] .md-header {
+  background-color: #000000 !important;
+}
+
+[data-md-color-scheme="slate"] .md-tabs {
+  background-color: #000000 !important;
+}
+
+[data-md-color-scheme="slate"] .md-header__title {
+  color: #FFFFFF !important;
+}
+
+[data-md-color-scheme="slate"] .md-tabs__link {
+  color: #FFFFFF !important;
+}
+
+[data-md-color-scheme="slate"] .md-tabs__link--active {
+  color: #F0B90B !important;
+  opacity: 1;
+}
+
 /* Custom color definitions for Material Design */
 [data-md-color-primary="custom"] {
   --md-primary-fg-color: #F0B90B;
@@ -33,25 +55,25 @@
   --md-accent-fg-color--transparent: rgba(240, 185, 11, 0.1);
 }
 
-/* Additional styling for better contrast */
-.md-header {
+/* Light mode styling for better contrast */
+[data-md-color-scheme="default"] .md-header {
   background-color: var(--md-primary-fg-color);
 }
 
-.md-tabs {
+[data-md-color-scheme="default"] .md-tabs {
   background-color: var(--md-primary-fg-color);
 }
 
-/* Ensure good contrast for text on yellow background */
-.md-header__title {
+/* Light mode: Ensure good contrast for text on yellow background */
+[data-md-color-scheme="default"] .md-header__title {
   color: #000000 !important;
 }
 
-.md-tabs__link {
+[data-md-color-scheme="default"] .md-tabs__link {
   color: #000000 !important;
 }
 
-.md-tabs__link--active {
+[data-md-color-scheme="default"] .md-tabs__link--active {
   color: #000000 !important;
   opacity: 1;
 }
