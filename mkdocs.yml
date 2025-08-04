@@ -138,6 +138,11 @@ markdown_extensions:
 
 nav:
   - Home: index.md
-  - Overview: overview.md
+  - Architecture: architecture.md
   - Setup Guide: setup.md
+  - API Reference: api-reference.md
+  - Configuration: configuration.md
+  - Examples: examples.md
+  - Development: development.md
+  - MCP Tools: suggested_mcp_tools.md
   - Contributing: contributing.md
