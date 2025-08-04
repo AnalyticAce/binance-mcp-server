@@ -88,3 +88,23 @@
   background-color: var(--md-accent-fg-color);
   color: #000000;
 }
+
+/* Dark mode: Fix invisible icons by ensuring proper contrast */
+[data-md-color-scheme="slate"] .md-header svg {
+  color: #000000 !important;
+  fill: #000000 !important;
+}
+
+[data-md-color-scheme="slate"] .md-header__button img {
+  filter: brightness(0) !important;
+}
+
+[data-md-color-scheme="slate"] .md-source__icon svg {
+  color: #000000 !important;
+  fill: #000000 !important;
+}
+
+[data-md-color-scheme="slate"] .md-header__option svg {
+  color: #000000 !important;
+  fill: #000000 !important;
+}
