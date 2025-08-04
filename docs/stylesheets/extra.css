@@ -1,0 +1,68 @@
+/* Binance Brand Colors */
+:root {
+  --md-primary-fg-color: #F0B90B;
+  --md-primary-fg-color--light: #FCD535;
+  --md-primary-fg-color--dark: #D4A009;
+  --md-accent-fg-color: #F0B90B;
+  --md-accent-fg-color--transparent: rgba(240, 185, 11, 0.1);
+}
+
+/* Light mode specific overrides */
+[data-md-color-scheme="default"] {
+  --md-primary-fg-color: #F0B90B;
+  --md-primary-bg-color: #FFFFFF;
+  --md-accent-fg-color: #F0B90B;
+}
+
+/* Dark mode specific overrides */
+[data-md-color-scheme="slate"] {
+  --md-primary-fg-color: #000000;
+  --md-primary-bg-color: #000000;
+  --md-accent-fg-color: #F0B90B;
+}
+
+/* Custom color definitions for Material Design */
+[data-md-color-primary="custom"] {
+  --md-primary-fg-color: #F0B90B;
+  --md-primary-fg-color--light: #FCD535;
+  --md-primary-fg-color--dark: #D4A009;
+}
+
+[data-md-color-accent="custom"] {
+  --md-accent-fg-color: #F0B90B;
+  --md-accent-fg-color--transparent: rgba(240, 185, 11, 0.1);
+}
+
+/* Additional styling for better contrast */
+.md-header {
+  background-color: var(--md-primary-fg-color);
+}
+
+.md-tabs {
+  background-color: var(--md-primary-fg-color);
+}
+
+/* Ensure good contrast for text on yellow background */
+.md-header__title {
+  color: #000000 !important;
+}
+
+.md-tabs__link {
+  color: #000000 !important;
+}
+
+.md-tabs__link--active {
+  color: #000000 !important;
+  opacity: 1;
+}
+
+/* Navigation styling */
+.md-nav__link--active {
+  color: var(--md-accent-fg-color);
+}
+
+/* Search highlighting */
+.md-search-result__teaser mark {
+  background-color: var(--md-accent-fg-color);
+  color: #000000;
+}

@@ -32,15 +32,15 @@ theme:
         name: Switch to light mode
     - media: "(prefers-color-scheme: light)"
       scheme: default
-      primary: indigo
-      accent: indigo
+      primary: custom
+      accent: custom
       toggle:
         icon: material/toggle-switch
         name: Switch to dark mode
     - media: "(prefers-color-scheme: dark)"
       scheme: slate
       primary: black
-      accent: indigo
+      accent: custom
       toggle:
         icon: material/toggle-switch-off
         name: Switch to system preference
@@ -75,6 +75,9 @@ extra:
           data: 0
           note: >-
             Thanks for your feedback!
+
+extra_css:
+  - stylesheets/extra.css
 
 markdown_extensions:
   - pymdownx.superfences
