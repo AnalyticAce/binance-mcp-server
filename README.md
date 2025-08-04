@@ -90,7 +90,7 @@ Our MCP server provides **26 comprehensive trading tools** that enable AI agents
 |------|---------|-------------|
 | `get_market_data` | Real-time and historical price/volume data | `fetch_market_data`, `market_data_feed` |
 | `get_ticker` | Latest price and 24h statistics | `fetch_ticker`, `ticker_info` |
-| `get_order_book` | Current order book (bids/asks) | `fetch_order_book`, `orderbook_info` |
+| `get_order_book` | Current order book (bids/asks) for a symbol | `fetch_order_book`, `orderbook_info` |
 | `get_asset_price` | Current or historical asset pricing | `fetch_asset_price`, `asset_price_info` |
 
 ### 💱 Trading Operations
