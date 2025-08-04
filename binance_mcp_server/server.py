@@ -34,6 +34,7 @@ mcp = FastMCP(
     - get_ticker: Get 24-hour price statistics for a symbol
     - get_available_assets: Get exchange trading rules and symbol information
     - get_fee_info: Get trading fee rates (maker/taker commissions) for symbols
+    - get_order_book: Get current order book (bids/asks) for a trading symbol
     
     All operations respect Binance API rate limits and use proper configuration management.
     Tools are implemented in dedicated modules for better maintainability.
@@ -537,6 +538,49 @@ def get_fee_info(symbol: Optional[str] = None) -> Dict[str, Any]:
         
     except Exception as e:
         logger.error(f"Unexpected error in get_fee_info tool: {str(e)}")
+        return {
+            "success": False,
+            "error": {
+                "type": "tool_error",
+                "message": f"Tool execution failed: {str(e)}"
+            }
+        }
+
+
+@mcp.tool()
+def get_order_book(symbol: str, limit: Optional[int] = None) -> Dict[str, Any]:
+    """
+    Get the current order book (bids/asks) for a trading symbol on Binance.
+    
+    This tool fetches real-time order book data for any valid trading pair available
+    on Binance. The order book contains arrays of bid and ask orders with their prices
+    and quantities, essential for trading/finance operations.
+    
+    Args:
+        symbol: Trading pair symbol in format BASEQUOTE (e.g., 'BTCUSDT', 'ETHBTC')
+        limit: Optional limit for number of orders per side (default: 100, max: 5000)
+        
+    Returns:
+        Dictionary containing success status, order book data, and metadata.
+    """
+    logger.info(f"Tool called: get_order_book with symbol={symbol}, limit={limit}")
+    
+    try:
+        from binance_mcp_server.tools.get_order_book import get_order_book as _get_order_book
+        result = _get_order_book(symbol, limit)
+        
+        if result.get("success"):
+            data = result.get("data", {})
+            bid_count = data.get("bidCount", 0)
+            ask_count = data.get("askCount", 0)
+            logger.info(f"Successfully fetched order book for {symbol}: {bid_count} bids, {ask_count} asks")
+        else:
+            logger.warning(f"Failed to fetch order book for {symbol}: {result.get('error', {}).get('message')}")
+            
+        return result
+        
+    except Exception as e:
+        logger.error(f"Unexpected error in get_order_book tool: {str(e)}")
         return {
             "success": False,
             "error": {
