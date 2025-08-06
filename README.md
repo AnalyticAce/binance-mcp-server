@@ -51,7 +51,7 @@ export BINANCE_TESTNET="true"
 
 ```bash
 # Start the MCP server
-binance_mcp_server --api-key $BINANCE_API_KEY --api-secret $BINANCE_API_SECRET --binance-testnet $BINANCE_TESTNET
+python -m binance_mcp_server.cli --api-key $BINANCE_API_KEY --api-secret $BINANCE_API_SECRET --binance-testnet
 ```
 
 ### 4️⃣ Connect Your AI Agent
@@ -62,11 +62,12 @@ Configure your AI agent (Claude, GPT-4, or custom bot) to connect to the MCP ser
 {
   "mcpServers": {
     "binance": {
-      "command": "binance_mcp_server",
+      "command": "python",
       "args": [
-        "--api-key": "your_api_key",
-        "--api-secret": "your_secret",
-        "--binance-testnet": "false" # Set to true for testnet
+        "-m", "binance_mcp_server.cli",
+        "--api-key", "your_api_key",
+        "--api-secret", "your_secret",
+        "--binance-testnet" 
       ]
     }
   }
@@ -74,57 +75,46 @@ Configure your AI agent (Claude, GPT-4, or custom bot) to connect to the MCP ser
 ```
 ## 📚 Available Tools
 
-Our MCP server provides **26 comprehensive trading tools** that enable AI agents to perform advanced cryptocurrency trading operations. Each tool follows the Model Context Protocol standard for seamless integration.
+Our MCP server provides **15 comprehensive trading tools** that enable AI agents to perform cryptocurrency trading operations. Each tool follows the Model Context Protocol standard for seamless integration.
 
 ### 🏦 Account & Portfolio Management
-| Tool | Purpose | Alternatives |
-|------|---------|-------------|
-| `get_balance` | Retrieve account balances (spot, margin, futures) | `fetch_account_balance`, `account_balance_info` |
-| `get_portfolio` | Fetch holdings, positions, and asset allocation | `fetch_portfolio`, `portfolio_info` |
-| `get_account_snapshot` | Point-in-time account state snapshot | `fetch_account_snapshot`, `account_state` |
-| `get_fee_info` | Trading, withdrawal, and funding fee rates | `fetch_fee_info`, `fee_rates` |
-| `get_available_assets` | List all tradable cryptocurrencies | `fetch_available_assets`, `asset_list` |
+| Tool | Purpose |
+|------|---------|
+| `get_balance` | Retrieve account balances for all assets |
+| `get_account_snapshot` | Point-in-time account state snapshot |
+| `get_fee_info` | Trading fee rates (maker/taker commissions) for symbols |
+| `get_available_assets` | List all tradable cryptocurrencies and exchange info |
 
 ### 📊 Market Data & Analysis  
-| Tool | Purpose | Alternatives |
-|------|---------|-------------|
-| `get_market_data` | Real-time and historical price/volume data | `fetch_market_data`, `market_data_feed` |
-| `get_ticker` | Latest price and 24h statistics | `fetch_ticker`, `ticker_info` |
-| `get_order_book` | Current order book (bids/asks) for a symbol | `fetch_order_book`, `orderbook_info` |
-| `get_asset_price` | Current or historical asset pricing | `fetch_asset_price`, `asset_price_info` |
+| Tool | Purpose |
+|------|---------|
+| `get_ticker_price` | Current price for a trading symbol |
+| `get_ticker` | 24-hour ticker price change statistics |
+| `get_order_book` | Current order book (bids/asks) for a symbol |
 
 ### 💱 Trading Operations
-| Tool | Purpose | Alternatives |
-|------|---------|-------------|
-| `place_order` | Submit buy/sell orders (market, limit, stop) | `create_order`, `submit_order` |
-| `cancel_order` | Cancel open orders by ID or symbol | `remove_order`, `revoke_order` |
-| `get_order_status` | Retrieve order status and details | `fetch_order_status`, `order_info` |
-| `list_orders` | List open, filled, or cancelled orders | `get_orders`, `fetch_order_list` |
-| `get_trade_history` | Historical trades executed by user | `fetch_trade_history`, `trade_log` |
+| Tool | Purpose |
+|------|---------|
+| `create_order` | Create buy/sell orders (market, limit, etc.) |
+| `get_orders` | List order history for a specific symbol |
 
 ### 📈 Performance & Analytics
-| Tool | Purpose | Alternatives |
-|------|---------|-------------|
-| `get_pnl` | Calculate realized/unrealized profit and loss | `fetch_pnl`, `profit_and_loss` |
-| `get_position_info` | Open positions details (size, entry, liquidation) | `fetch_position_info`, `position_details` |
-| `get_transaction_history` | Deposits, withdrawals, and transfers log | `fetch_transaction_history`, `transaction_log` |
-| `get_dividends` | Dividend payments and history | `fetch_dividends`, `dividend_history` |
+| Tool | Purpose |
+|------|---------|
+| `get_pnl` | Calculate profit and loss for futures trading |
+| `get_position_info` | Open futures positions details |
 
-### 🛡️ Risk Management & Margins
-| Tool | Purpose | Alternatives |
-|------|---------|-------------|
-| `get_risk_metrics` | Margin level, liquidation risk, leverage info | `fetch_risk_metrics`, `risk_info` |
-| `get_funding_rates` | Futures/perpetual contract funding rates | `fetch_funding_rates`, `funding_info` |
-| `get_leverage_brackets` | Allowed leverage and margin requirements | `fetch_leverage_brackets`, `leverage_info` |
-| `get_margin_interest` | Interest rates and accrued interest | `fetch_margin_interest`, `margin_interest_info` |
-| `get_liquidation_history` | Past liquidation events | `fetch_liquidation_history`, `liquidation_log` |
-| `get_borrow_history` | Borrowed funds and repayment history | `fetch_borrow_history`, `borrow_log` |
+### 🏪 Wallet & Transfers
+| Tool | Purpose |
+|------|---------|
+| `get_deposit_address` | Get deposit address for a specific coin |
+| `get_deposit_history` | Deposit history for a specific coin |
+| `get_withdraw_history` | Withdrawal history for a specific coin |
 
-### 🔄 Advanced Operations
-| Tool | Purpose | Alternatives |
-|------|---------|-------------|
-| `get_asset_transfer` | Transfer assets between accounts | `fetch_asset_transfer`, `transfer_funds` |
-| `get_withdrawal_status` | Check withdrawal request status | `fetch_withdrawal_status`, `withdrawal_info` |
+### 🛡️ Risk Management
+| Tool | Purpose |
+|------|---------|
+| `get_liquidation_history` | Past liquidation events for futures trading |
 
 
 ## 🔧 Configuration
@@ -151,17 +141,23 @@ cd binance-mcp-server
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 
-# 3. Install development dependencies
+# 3. Install development dependencies (choose one)
+# Option A: Using uv (if available)
 uv install --dev
 
-# 4. Set up pre-commit hooks (required for development)
+# Option B: Using pip
+pip install -e .
+pip install pytest  # for testing
+
+# 4. Set up pre-commit hooks (optional)
+pip install pre-commit
 pre-commit install --hook-type commit-msg
 
 # 5. Run tests to verify setup
 pytest
 
-# 6. Start development server with hot-reload
-python -m binance_mcp_server.cli --dev --reload
+# 6. Start development server
+python -m binance_mcp_server.cli
 ```
 
 ### Testing Strategy
@@ -185,12 +181,12 @@ We welcome contributions from the crypto and AI development community! Here's ho
 
 Check our [GitHub Issues](https://github.com/AnalyticAce/binance-mcp-server/issues) for the latest development priorities:
 
-- [ ] **Account Management Tools** (#6-8) - `get_balance`, `get_portfolio`, `get_fee_info`
-- [ ] **Market Data Integration** (#9-13) - Real-time data feeds and historical analysis
-- [ ] **Trading Operations** (#14-18) - Order management and execution
-- [ ] **Portfolio Analytics** (#19-22) - Performance tracking and risk metrics
-- [ ] **Alert System** (#23-24) - Price and position monitoring
-- [ ] **Risk Management** (#25-26) - Margin and liquidation safeguards
+- [ ] **Enhanced Trading Tools** - Order cancellation, modification, and advanced order types
+- [ ] **Portfolio Management** - Advanced portfolio analytics and asset allocation tools  
+- [ ] **Risk Management Extensions** - Margin monitoring, leverage management, and liquidation alerts
+- [ ] **Market Data Enhancements** - Historical data, technical indicators, and market analysis
+- [ ] **Alert System** - Price notifications and position monitoring
+- [ ] **Documentation & Examples** - Comprehensive guides and use case examples
 
 ### 📋 Contribution Guidelines
 
@@ -208,8 +204,13 @@ Check our [GitHub Issues](https://github.com/AnalyticAce/binance-mcp-server/issu
 git clone https://github.com/your-username/binance-mcp-server.git
 cd binance-mcp-server
 
-# Install dependencies and set up environment
+# Install dependencies and set up environment (choose one)
+# Option A: Using uv (if available)
 uv install --dev
+
+# Option B: Using pip
+pip install -e .
+pip install pytest pre-commit
 
 # Install pre-commit hooks (enforces commit message conventions)
 pre-commit install --hook-type commit-msg
@@ -258,12 +259,19 @@ export BINANCE_TESTNET="true"
 ### 📊 Market Data Queries
 
 ```python
-# Get real-time Bitcoin price and market data
+# Get real-time Bitcoin price
 {
-    "name": "get_market_data",
+    "name": "get_ticker_price",
     "arguments": {
-        "symbol": "BTCUSDT",
-        "interval": "1h"
+        "symbol": "BTCUSDT"
+    }
+}
+
+# Get 24-hour ticker statistics for Ethereum
+{
+    "name": "get_ticker", 
+    "arguments": {
+        "symbol": "ETHUSDT"
     }
 }
 
@@ -283,16 +291,14 @@ export BINANCE_TESTNET="true"
 # Check account balances
 {
     "name": "get_balance",
-    "arguments": {
-        "account_type": "spot"
-    }
+    "arguments": {}
 }
 
-# Get portfolio overview
+# Get account snapshot
 {
-    "name": "get_portfolio",
+    "name": "get_account_snapshot",
     "arguments": {
-        "include_positions": true
+        "account_type": "SPOT"
     }
 }
 ```
@@ -300,25 +306,23 @@ export BINANCE_TESTNET="true"
 ### 🛒 Trading Operations
 
 ```python
-# Place a limit buy order for Ethereum
+# Create a limit buy order for Ethereum
 {
-    "name": "place_order",
+    "name": "create_order",
     "arguments": {
         "symbol": "ETHUSDT",
         "side": "BUY", 
-        "type": "LIMIT",
-        "quantity": "0.1",
-        "price": "2000.00",
-        "timeInForce": "GTC"
+        "order_type": "LIMIT",
+        "quantity": 0.1,
+        "price": 2000.00
     }
 }
 
-# Cancel an open order
+# Get order history for a symbol
 {
-    "name": "cancel_order",
+    "name": "get_orders",
     "arguments": {
-        "symbol": "ETHUSDT", 
-        "orderId": "12345678"
+        "symbol": "ETHUSDT"
     }
 }
 ```
@@ -329,48 +333,45 @@ export BINANCE_TESTNET="true"
 # Calculate profit and loss
 {
     "name": "get_pnl",
-    "arguments": {
-        "symbol": "BTCUSDT",
-        "timeframe": "24h"
-    }
+    "arguments": {}
 }
 
-# Get trading history
+# Get position information
 {
-    "name": "get_trade_history",
-    "arguments": {
-        "symbol": "ETHUSDT",
-        "limit": 50
-    }
+    "name": "get_position_info",
+    "arguments": {}
 }
 ```
 
 ## 🎯 Roadmap
 
-### 🚀 Phase 1: Core Foundation
+### 🚀 Phase 1: Core Foundation ✅
 - [x] **MCP Server Framework** - FastMCP integration and basic structure
 - [x] **Documentation & Planning** - Comprehensive tool specifications
-- [ ] **Authentication System** - Secure Binance API integration
-- [ ] **Basic Tools Implementation** - Essential trading and account tools
+- [x] **Authentication System** - Secure Binance API integration
+- [x] **Basic Tools Implementation** - Essential trading and account tools (15 tools)
 
-### 📊 Phase 2: Trading Operations
-- [ ] **Order Management** - Complete buy/sell order lifecycle
-- [ ] **Market Data Integration** - Real-time feeds and historical data
-- [ ] **Portfolio Analytics** - P&L tracking and performance metrics
-- [ ] **Risk Management** - Margin monitoring and position limits
+### 📊 Phase 2: Trading Operations 🚧
+- [x] **Order Management** - Basic order creation and history
+- [x] **Market Data Integration** - Real-time price feeds and order books
+- [x] **Portfolio Analytics** - Basic P&L tracking and position info
+- [ ] **Advanced Order Types** - Stop-loss, take-profit, OCO orders
+- [ ] **Order Cancellation** - Cancel and modify existing orders
+- [ ] **Enhanced Risk Management** - Advanced margin monitoring
 
-### 🔥 Phase 3: Advanced Features
+### 🔥 Phase 3: Advanced Features 📋
 - [ ] **Advanced Analytics** - Technical indicators and market insights
 - [ ] **Alert System** - Price notifications and position monitoring
 - [ ] **Strategy Tools** - DCA, grid trading, and automation helpers
+- [ ] **Multi-account Support** - Cross-margin, isolated margin accounts
 
 
 ### 📈 Success Metrics
-- **Tool Coverage**: 26/26 core tools implemented ✅
-- **Test Coverage**: >90% code coverage target
+- **Tool Coverage**: 15/15 core tools implemented ✅
+- **Test Coverage**: >90% code coverage target (currently 22 tests passing)
 - **Performance**: <100ms average API response time
-- **Community**: 1000+ GitHub stars, 100+ contributors
-- **Production Usage**: 10,000+ monthly active installations
+- **Community**: Growing GitHub engagement and contributions
+- **Production Usage**: Stable package releases on PyPI
 
 ## 📄 License
 
