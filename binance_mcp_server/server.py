@@ -12,6 +12,7 @@ import argparse
 from typing import Dict, Any, Optional
 from fastmcp import FastMCP
 from dotenv import load_dotenv
+from binance_mcp_server.security import SecurityConfig, validate_api_credentials, security_audit_log
 
 
 logging.basicConfig(
@@ -26,28 +27,54 @@ logger = logging.getLogger(__name__)
 
 mcp = FastMCP(
     name="binance-mcp-server",
-    version="1.2.4",
+    version="1.2.5",  # Updated to match pyproject.toml
     instructions="""
-    This server provides access to Binance cryptocurrency exchange functionality.
-    Available tools include:
+    This server provides secure access to Binance cryptocurrency exchange functionality following MCP best practices.
+    
+    SECURITY FEATURES:
+    - Rate limiting to prevent abuse
+    - Input validation and sanitization
+    - Secure error handling without information leakage
+    - Comprehensive audit logging
+    - Credential protection
+    
+    AVAILABLE TOOLS:
+    
+    Market Data:
     - get_ticker_price: Get current price for a trading symbol
     - get_ticker: Get 24-hour price statistics for a symbol  
+    - get_order_book: Get current order book (bids/asks) for a trading symbol
     - get_available_assets: Get exchange trading rules and symbol information
     - get_fee_info: Get trading fee rates (maker/taker commissions) for symbols
-    - get_order_book: Get current order book (bids/asks) for a trading symbol
+    
+    Account Management:
     - get_balance: Get account balances for all assets
+    - get_account_snapshot: Get account snapshot data
+    
+    Trading Operations:
+    - create_order: Create new trading orders (with enhanced validation)
     - get_orders: Get order history for a specific symbol
+    
+    Portfolio & Analytics:
     - get_position_info: Get current futures position information
     - get_pnl: Get profit and loss information
-    - create_order: Create new trading orders
-    - get_account_snapshot: Get account snapshot data
+    
+    Wallet Operations:
     - get_deposit_address: Get deposit address for a specific coin
     - get_deposit_history: Get deposit history for a specific coin
     - get_withdraw_history: Get withdrawal history for a specific coin
+    
+    Risk Management:
     - get_liquidation_history: Get liquidation history for futures trading
     
-    All operations respect Binance API rate limits and use proper configuration management.
-    Tools are implemented in dedicated modules for better maintainability.
+    All operations implement:
+    - Comprehensive input validation
+    - Rate limiting to respect Binance API limits
+    - Secure error handling
+    - Audit logging for security monitoring
+    - Proper configuration management
+    
+    Tools are implemented in dedicated modules following security best practices.
     """
 )
 
@@ -603,22 +630,47 @@ def get_order_book(symbol: str, limit: Optional[int] = None) -> Dict[str, Any]:
 
 def validate_configuration() -> bool:
     """
-    Validate server configuration and dependencies.
+    Validate server configuration and dependencies with security checks.
     
     Returns:
-        bool: True if configuration is valid, False otherwise
+        bool: True if configuration is valid and secure, False otherwise
     """
     try:
         from binance_mcp_server.config import BinanceConfig
+        from binance_mcp_server.security import SecurityConfig, validate_api_credentials
         
+        # Validate basic configuration
         config = BinanceConfig()
         if not config.is_valid():
             logger.error("Invalid Binance configuration:")
             for error in config.get_validation_errors():
                 logger.error(f"  • {error}")
             return False
-            
+        
+        # Validate API credentials security
+        if not validate_api_credentials():
+            logger.error("API credentials validation failed")
+            return False
+        
+        # Validate security configuration
+        security_config = SecurityConfig()
+        if not security_config.is_secure():
+            logger.warning("Security configuration warnings:")
+            for warning in security_config.get_security_warnings():
+                logger.warning(f"  • {warning}")
+            # Don't fail on security warnings, just log them
+        
+        # Log successful validation with security audit
+        security_audit_log(
+            "configuration_validated",
+            {
+                "testnet": config.testnet,
+                "security_enabled": security_config.is_secure()
+            }
+        )
+        
         logger.info(f"Configuration validated successfully (testnet: {config.testnet})")
+        logger.info(f"Security features enabled: {security_config.is_secure()}")
         return True
         
     except ImportError as e:
@@ -626,6 +678,11 @@ def validate_configuration() -> bool:
         return False
     except Exception as e:
         logger.error(f"Configuration validation failed: {str(e)}")
+        security_audit_log(
+            "configuration_validation_failed",
+            {"error": str(e)},
+            level="ERROR"
+        )
         return False
 
 
