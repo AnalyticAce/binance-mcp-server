@@ -9,27 +9,33 @@
 
 ### Step 1: Install the Package
 
-Choose your preferred package manager:
+The easiest way to get started is by installing the official package from [PyPI](https://pypi.org/project/binance-mcp-server/):
 
-=== "uv (Recommended)"
+=== "pip (Recommended)"
+    ```bash
+    # Install the latest stable release
+    pip install binance-mcp-server
+    ```
+
+=== "uv (Fast Package Manager)"
     ```bash
     # Install using uv for fast, reliable package management
     uv add binance-mcp-server
     ```
 
-=== "pip"
-    ```bash
-    # Install using pip
-    pip install binance-mcp-server
-    ```
-
 === "Development Installation"
     ```bash
-    # Clone and install for development
+    # Only for contributors - regular users should use pip install above
     git clone https://github.com/AnalyticAce/BinanceMCPServer.git
     cd BinanceMCPServer
     pip install -e .
     ```
+
+> 💡 **Benefits of PyPI Installation:**
+> - ✅ Always the latest stable version
+> - ✅ Automatic dependency management  
+> - ✅ Easy updates with `pip install --upgrade binance-mcp-server`
+> - ✅ No need to manage source code
 
 ## Configuration
 
@@ -100,7 +106,7 @@ Set up your API credentials as environment variables:
 
 === "STDIO (MCP Clients)"
     ```bash
-    # Default mode for MCP clients (Claude, etc.)
+    # Default mode for MCP clients (Claude, etc.) - using PyPI installation
     binance-mcp-server
     
     # With custom log level
@@ -128,11 +134,14 @@ Set up your API credentials as environment variables:
 binance-mcp-server [OPTIONS]
 
 Options:
+  --api-key, -k TEXT               Binance API key (or set BINANCE_API_KEY env var)
+  --api-secret, -s TEXT            Binance API secret (or set BINANCE_API_SECRET env var)  
+  --binance-testnet, -t            Use testnet environment (recommended for testing)
   --transport [stdio|streamable-http|sse]  Transport method (default: stdio)
-  --port INTEGER                           Port for HTTP transport (default: 8000)
-  --host TEXT                             Host for HTTP transport (default: localhost)
+  --port INTEGER                   Port for HTTP transport (default: 8000)
+  --host TEXT                     Host for HTTP transport (default: localhost)
   --log-level [DEBUG|INFO|WARNING|ERROR]  Set logging level (default: INFO)
-  --help                                  Show help message
+  --help                          Show help message
 ```
 
 ## MCP Client Configuration

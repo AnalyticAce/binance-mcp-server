@@ -26,13 +26,21 @@ A powerful **Model Context Protocol (MCP) server** that enables AI agents to int
 
 ### 1️⃣ Installation
 
-```bash
-# Install using uv (recommended for Python package management)
-uv add binance-mcp-server
+Install the official package from [PyPI](https://pypi.org/project/binance-mcp-server/):
 
-# Alternative: Install using pip
+```bash
+# Recommended: Install using pip
 pip install binance-mcp-server
+
+# Alternative: Using uv for faster package management
+uv add binance-mcp-server
 ```
+
+> 💡 **Why use the PyPI package?**
+> - ✅ Always up-to-date with latest releases
+> - ✅ Automatic dependency management
+> - ✅ Simple installation and updates
+> - ✅ No need to clone repositories or manage source code
 
 ### 2️⃣ Configuration
 
@@ -50,8 +58,8 @@ export BINANCE_TESTNET="true"
 ### 3️⃣ Launch Server
 
 ```bash
-# Start the MCP server
-python -m binance_mcp_server.cli --api-key $BINANCE_API_KEY --api-secret $BINANCE_API_SECRET --binance-testnet
+# Start the MCP server (after installing from PyPI)
+binance-mcp-server --api-key $BINANCE_API_KEY --api-secret $BINANCE_API_SECRET --binance-testnet
 ```
 
 ### 4️⃣ Connect Your AI Agent
@@ -62,9 +70,8 @@ Configure your AI agent (Claude, GPT-4, or custom bot) to connect to the MCP ser
 {
   "mcpServers": {
     "binance": {
-      "command": "python",
+      "command": "binance-mcp-server",
       "args": [
-        "-m", "binance_mcp_server.cli",
         "--api-key", "your_api_key",
         "--api-secret", "your_secret",
         "--binance-testnet" 
@@ -129,6 +136,8 @@ Our MCP server provides **15 comprehensive trading tools** that enable AI agents
 
 
 ## 🛠️ Development
+
+> 📝 **Note**: This section is for contributors and developers who want to modify the source code. Regular users should install from PyPI using the instructions above.
 
 ### Development Environment Setup
 
@@ -198,6 +207,8 @@ Check our [GitHub Issues](https://github.com/AnalyticAce/binance-mcp-server/issu
 6. **Review**: Submit a pull request for review
 
 ### 🔧 Development Setup for Contributors
+
+> 💡 **For Regular Use**: Most users should install via `pip install binance-mcp-server` instead of cloning this repository.
 
 ```bash
 # Clone your fork

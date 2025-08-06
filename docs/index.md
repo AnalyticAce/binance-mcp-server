@@ -44,10 +44,26 @@ The Binance MCP Server provides a standardized interface for AI agents to access
 
 ## Getting Started
 
-1. **Install the server**: `pip install binance-mcp-server`
+### Quick Installation
+
+```bash
+# Install from PyPI (recommended)
+pip install binance-mcp-server
+```
+
+### Basic Usage
+
+1. **Install the package**: `pip install binance-mcp-server`
 2. **Configure your API keys**: Set `BINANCE_API_KEY` and `BINANCE_API_SECRET`
 3. **Run the server**: `binance-mcp-server`
 4. **Connect your MCP client**: Use STDIO transport to connect
+
+### Why Choose the PyPI Package?
+
+- 🎯 **Always Latest**: Automatically get the latest stable releases
+- 🛡️ **Reliable**: Thoroughly tested releases with version management  
+- ⚡ **Simple**: One command installation and updates
+- 🔧 **Maintained**: Regular updates and security patches
 
 ## Support
 
