@@ -31,10 +31,20 @@ mcp = FastMCP(
     This server provides access to Binance cryptocurrency exchange functionality.
     Available tools include:
     - get_ticker_price: Get current price for a trading symbol
-    - get_ticker: Get 24-hour price statistics for a symbol
+    - get_ticker: Get 24-hour price statistics for a symbol  
     - get_available_assets: Get exchange trading rules and symbol information
     - get_fee_info: Get trading fee rates (maker/taker commissions) for symbols
     - get_order_book: Get current order book (bids/asks) for a trading symbol
+    - get_balance: Get account balances for all assets
+    - get_orders: Get order history for a specific symbol
+    - get_position_info: Get current futures position information
+    - get_pnl: Get profit and loss information
+    - create_order: Create new trading orders
+    - get_account_snapshot: Get account snapshot data
+    - get_deposit_address: Get deposit address for a specific coin
+    - get_deposit_history: Get deposit history for a specific coin
+    - get_withdraw_history: Get withdrawal history for a specific coin
+    - get_liquidation_history: Get liquidation history for futures trading
     
     All operations respect Binance API rate limits and use proper configuration management.
     Tools are implemented in dedicated modules for better maintainability.
