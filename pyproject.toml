@@ -21,5 +21,8 @@ dependencies = [
     "typer>=0.16.0",
 ]
 
+[project.scripts]
+binance-mcp-server = "binance_mcp_server.cli:app"
+
 [project.urls]
 Homepage = "https://analyticace.github.io/BinanceMCPServer/"

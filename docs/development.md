@@ -1,5 +1,9 @@
 # Development Guide
 
+> 🎯 **For End Users**: If you just want to use the Binance MCP Server, install it from PyPI with `pip install binance-mcp-server` and follow the [Setup Guide](setup.md).
+
+> 👨‍💻 **For Developers**: This guide is for contributors who want to modify the source code, add features, or contribute to the project.
+
 This guide covers development, testing, and contribution workflows for the Binance MCP Server.
 
 ## Development Setup
@@ -349,12 +353,20 @@ Description of the new tool.
 
 #### STDIO Mode (for MCP testing)
 ```bash
-python -m binance_mcp_server.server
+# For development - when working from source
+python -m binance_mcp_server.cli
+
+# For testing installed package
+binance-mcp-server
 ```
 
 #### HTTP Mode (for development)
 ```bash
-python -m binance_mcp_server.server --transport streamable-http --port 8000 --log-level DEBUG
+# From source
+python -m binance_mcp_server.cli --transport streamable-http --port 8000 --log-level DEBUG
+
+# From installed package  
+binance-mcp-server --transport streamable-http --port 8000 --log-level DEBUG
 ```
 
 #### Testing HTTP Endpoints
