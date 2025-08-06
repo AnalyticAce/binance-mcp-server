@@ -238,17 +238,30 @@ git commit -m "feat(tools): add new market data tool"
 - `documentation` - Documentation updates needed
 - `help wanted` - Community assistance requested
 
-### 📝 Development Standards
+### 📋 Development Standards
 
+- **MCP Protocol Compliance**: Full adherence to Model Context Protocol standards
 - **Pre-commit Hooks**: Required for all contributors to ensure commit message consistency
 - **Type Hints**: Full type annotations required
 - **Testing**: pytest with >80% coverage target
 - **Commits**: Conventional commit format (`feat:`, `fix:`, etc.) enforced by pre-commit hooks
 - **Documentation**: Google-style docstrings
+- **Security**: Comprehensive input validation and secure error handling
 
 ## 🔒 Security & Best Practices
 
-### 🛡️ API Security
+### 🛡️ MCP Protocol Compliance
+
+This server implements comprehensive security measures following Model Context Protocol best practices:
+
+- **Enhanced Input Validation**: All inputs are validated and sanitized
+- **Secure Error Handling**: Error messages are sanitized to prevent information leakage  
+- **Rate Limiting**: Built-in protection against API abuse
+- **Credential Protection**: No sensitive data logged or exposed
+- **Audit Logging**: Comprehensive security event tracking
+
+### 🔐 API Security
+
 - **Credential Management**: Never commit API keys to version control
 - **Testnet First**: Always test with Binance testnet before live trading  
 - **Rate Limiting**: Built-in respect for Binance API rate limits
@@ -256,6 +269,7 @@ git commit -m "feat(tools): add new market data tool"
 - **Audit Logging**: Complete audit trail of all operations
 
 ### 🔐 Environment Security
+
 ```bash
 # Use environment variables for sensitive data
 export BINANCE_API_KEY="your_key_here"
@@ -263,7 +277,13 @@ export BINANCE_API_SECRET="your_secret_here"
 
 # Enable testnet for development
 export BINANCE_TESTNET="true"
+
+# Optional: Configure security features
+export MCP_RATE_LIMIT_ENABLED="true"
+export MCP_MAX_REQUESTS_PER_MINUTE="60"
 ```
+
+📖 **[Read Full Security Documentation](docs/security.md)** - Comprehensive security guidelines and best practices.
 
 ## 💡 Usage Examples
 
@@ -358,9 +378,11 @@ export BINANCE_TESTNET="true"
 
 ### 🚀 Phase 1: Core Foundation ✅
 - [x] **MCP Server Framework** - FastMCP integration and basic structure
+- [x] **MCP Protocol Compliance** - Enhanced security and best practices implementation
 - [x] **Documentation & Planning** - Comprehensive tool specifications
 - [x] **Authentication System** - Secure Binance API integration
 - [x] **Basic Tools Implementation** - Essential trading and account tools (15 tools)
+- [x] **Security Features** - Input validation, error sanitization, rate limiting
 
 ### 📊 Phase 2: Trading Operations 🚧
 - [x] **Order Management** - Basic order creation and history
@@ -379,7 +401,8 @@ export BINANCE_TESTNET="true"
 
 ### 📈 Success Metrics
 - **Tool Coverage**: 15/15 core tools implemented ✅
-- **Test Coverage**: >90% code coverage target (currently 22 tests passing)
+- **Test Coverage**: >90% code coverage target (currently 38 tests passing)
+- **Security Compliance**: MCP best practices implemented ✅
 - **Performance**: <100ms average API response time
 - **Community**: Growing GitHub engagement and contributions
 - **Production Usage**: Stable package releases on PyPI

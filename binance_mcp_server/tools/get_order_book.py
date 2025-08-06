@@ -15,6 +15,7 @@ from binance_mcp_server.utils import (
     rate_limited,
     binance_rate_limiter,
     validate_symbol,
+    validate_limit_parameter,
 )
 
 logger = logging.getLogger(__name__)
@@ -62,21 +63,15 @@ def get_order_book(symbol: str, limit: Optional[int] = None) -> Dict[str, Any]:
         # Validate and normalize symbol
         normalized_symbol = validate_symbol(symbol)
         
-        # Validate limit parameter if provided
-        if limit is not None:
-            if not isinstance(limit, int) or limit <= 0:
-                raise ValueError("Limit must be a positive integer")
-            if limit > 5000:
-                raise ValueError("Limit cannot exceed 5000")
-            # Binance API supports specific limit values, but we'll let the API handle validation
-            # Common valid limits: 5, 10, 20, 50, 100, 500, 1000, 5000
+        # Validate limit parameter using enhanced validation
+        validated_limit = validate_limit_parameter(limit, max_limit=5000)
         
         client = get_binance_client()
         
         # Prepare API parameters
         params = {"symbol": normalized_symbol}
-        if limit is not None:
-            params["limit"] = limit
+        if validated_limit is not None:
+            params["limit"] = validated_limit
         
         # Get order book data from Binance API
         order_book_data = client.get_order_book(**params)
