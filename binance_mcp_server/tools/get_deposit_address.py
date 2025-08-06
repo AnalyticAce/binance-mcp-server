@@ -1,3 +1,10 @@
+"""
+Binance deposit address retrieval tool implementation.
+
+This module provides functionality to fetch deposit addresses for specific cryptocurrencies
+on a user's Binance account, enabling external transfers to the exchange.
+"""
+
 import logging
 from typing import Dict, Any, Optional
 from binance.exceptions import BinanceAPIException, BinanceRequestException
@@ -16,13 +23,42 @@ logger = logging.getLogger(__name__)
 @rate_limited(binance_rate_limiter)
 def get_deposit_address(coin: str) -> Dict[str, Any]:
     """
-    Get the deposit address for a specific coin on the user's Binance account.
-
+    Get the deposit address for a specific cryptocurrency on the user's Binance account.
+    
+    This function retrieves the deposit address for a specified coin, which can be used
+    to transfer funds from external wallets or exchanges to the user's Binance account.
+    
     Args:
-        coin (str): The coin for which to fetch the deposit address.
-
+        coin (str): The cryptocurrency symbol for which to fetch the deposit address.
+                   Examples: 'BTC', 'ETH', 'USDT', 'BNB', etc.
+                   Must be a valid coin supported by Binance.
+    
     Returns:
-        Dictionary containing success status and deposit address data.
+        Dict containing:
+        - success (bool): Whether the request was successful
+        - data (dict): Deposit address information including address and network details
+        - timestamp (int): Unix timestamp of the response
+        - error (dict, optional): Error details if request failed
+        
+        Deposit address data typically includes:
+        - address (str): The deposit address
+        - coin (str): The coin symbol
+        - tag (str, optional): Memo/tag for certain coins (e.g., XRP, BNB)
+        - url (str, optional): QR code URL for the address
+        
+    Examples:
+        # Get Bitcoin deposit address
+        result = get_deposit_address("BTC")
+        if result["success"]:
+            address = result["data"]["address"]
+            print(f"BTC deposit address: {address}")
+        
+        # Get address for coin with memo/tag
+        result = get_deposit_address("XRP")
+        if result["success"]:
+            address = result["data"]["address"]
+            tag = result["data"].get("tag")
+            print(f"XRP address: {address}, Tag: {tag}")
     """
     logger.info(f"Fetching deposit address for {coin}")
 

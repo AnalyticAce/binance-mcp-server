@@ -1,3 +1,10 @@
+"""
+Binance account balance retrieval tool implementation.
+
+This module provides functionality to fetch current account balance information
+for all assets in a user's Binance account, including available and locked amounts.
+"""
+
 import logging
 from typing import Dict, Any
 from binance.exceptions import BinanceAPIException, BinanceRequestException
@@ -19,20 +26,31 @@ def get_balance() -> Dict[str, Any]:
     Get the current account balance for all assets on Binance.
     
     This function retrieves the balances of all assets in the user's Binance account,
-    including available and locked amounts.
+    including available (free) and locked amounts for each asset. Only assets with
+    non-zero balances are returned to reduce response size.
     
     Returns:
         Dict containing:
         - success (bool): Whether the request was successful
-        - data (dict): Response data with asset balances
+        - data (dict): Mapping of asset symbols to balance information
         - timestamp (int): Unix timestamp of the response
         - error (dict, optional): Error details if request failed
+        
+        Balance data structure for each asset:
+        - free (float): Available balance for trading/withdrawal
+        - locked (float): Balance locked in open orders or other operations
         
     Examples:
         result = get_balance()
         if result["success"]:
             balances = result["data"]
             print(f"Available USDT: {balances['USDT']['free']}")
+            print(f"Locked BTC: {balances['BTC']['locked']}")
+            
+        # Check if specific asset exists
+        if "ETH" in result["data"]:
+            eth_balance = result["data"]["ETH"]
+            total_eth = eth_balance["free"] + eth_balance["locked"]
     """
     logger.info("Fetching account balance")
     

@@ -1,3 +1,10 @@
+"""
+Binance universal transfer history retrieval tool implementation.
+
+This module provides functionality to fetch universal transfer history between different
+account types on Binance, enabling comprehensive transfer tracking and analysis.
+"""
+
 import logging
 from typing import Dict, Any, Optional
 from binance.exceptions import BinanceAPIException, BinanceRequestException

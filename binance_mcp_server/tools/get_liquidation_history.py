@@ -1,3 +1,10 @@
+"""
+Binance liquidation history retrieval tool implementation.
+
+This module provides functionality to fetch liquidation history for futures trading
+on Binance, essential for risk management and performance analysis.
+"""
+
 import logging
 from typing import Dict, Any
 from binance.exceptions import BinanceAPIException, BinanceRequestException
@@ -16,10 +23,40 @@ logger = logging.getLogger(__name__)
 @rate_limited(binance_rate_limiter)
 def get_liquidation_history() -> Dict[str, Any]:
     """
-    Get the liquidation history on Binance account.
-
+    Get the liquidation history for the user's Binance futures account.
+    
+    This function retrieves past liquidation events from futures trading,
+    which is crucial for risk management analysis and understanding account
+    performance during volatile market conditions.
+    
     Returns:
-        Dictionary containing success status and liquidation history data.
+        Dict containing:
+        - success (bool): Whether the request was successful
+        - data (list): List of liquidation events with details
+        - timestamp (int): Unix timestamp of the response
+        - error (dict, optional): Error details if request failed
+        
+        Each liquidation event typically includes:
+        - symbol (str): Trading pair that was liquidated
+        - side (str): Position side (BUY/SELL)
+        - orderType (str): Type of liquidation order
+        - timeInForce (str): Time in force for the order
+        - origQty (str): Original quantity
+        - price (str): Liquidation price
+        - executedQty (str): Executed quantity
+        - status (str): Order status
+        - time (int): Liquidation timestamp
+        
+    Examples:
+        result = get_liquidation_history()
+        if result["success"]:
+            liquidations = result["data"]
+            for liq in liquidations:
+                print(f"Liquidated {liq['symbol']} at {liq['price']}")
+                print(f"Quantity: {liq['executedQty']}, Time: {liq['time']}")
+            
+            if not liquidations:
+                print("No liquidation history found")
     """
     logger.info("Fetching liquidation history")
 
