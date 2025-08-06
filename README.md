@@ -141,10 +141,16 @@ cd binance-mcp-server
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 
-# 3. Install development dependencies
+# 3. Install development dependencies (choose one)
+# Option A: Using uv (if available)
 uv install --dev
 
-# 4. Set up pre-commit hooks (required for development)
+# Option B: Using pip
+pip install -e .
+pip install pytest  # for testing
+
+# 4. Set up pre-commit hooks (optional)
+pip install pre-commit
 pre-commit install --hook-type commit-msg
 
 # 5. Run tests to verify setup
@@ -198,8 +204,13 @@ Check our [GitHub Issues](https://github.com/AnalyticAce/binance-mcp-server/issu
 git clone https://github.com/your-username/binance-mcp-server.git
 cd binance-mcp-server
 
-# Install dependencies and set up environment
+# Install dependencies and set up environment (choose one)
+# Option A: Using uv (if available)
 uv install --dev
+
+# Option B: Using pip
+pip install -e .
+pip install pytest pre-commit
 
 # Install pre-commit hooks (enforces commit message conventions)
 pre-commit install --hook-type commit-msg
