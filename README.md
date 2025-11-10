@@ -59,7 +59,11 @@ export BINANCE_TESTNET="true"
 
 ```bash
 # Start the MCP server (after installing from PyPI)
-binance-mcp-server --api-key $BINANCE_API_KEY --api-secret $BINANCE_API_SECRET --binance-testnet
+# By default the server runs in READ-ONLY mode (trading disabled)
+binance-mcp-server --api-key $BINANCE_API_KEY --api-secret $BINANCE_API_SECRET --binance-testnet --read-only
+
+# To enable trading tools explicitly, pass --enable-trading (recommended only on testnet)
+# binance-mcp-server --api-key $BINANCE_API_KEY --api-secret $BINANCE_API_SECRET --binance-testnet --enable-trading
 ```
 
 ### 4️⃣ Connect Your AI Agent

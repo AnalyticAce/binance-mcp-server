@@ -113,16 +113,27 @@ def get_binance_client() -> Client:
     config = get_config()
     
     try:
-        # Create client with appropriate configuration
+        # Create client
         client = Client(
             api_key=config.api_key,
             api_secret=config.api_secret,
-            # testnet=config.testnet
         )
-        
+
+        # Explicitly route to testnet endpoints when requested
+        if config.testnet:
+            try:
+                # Spot testnet base URL
+                if hasattr(client, "API_URL"):
+                    client.API_URL = "https://testnet.binance.vision/api"
+                # USD‑M Futures testnet base URL
+                if hasattr(client, "FUTURES_URL"):
+                    client.FUTURES_URL = "https://testnet.binancefuture.com/fapi"
+            except Exception as e:
+                logger.warning(f"Failed to set testnet endpoints on client: {e}")
+
         # Test connection
         client.ping()
-        
+
         logger.info(f"Successfully initialized Binance client (testnet: {config.testnet})")
         return client
         

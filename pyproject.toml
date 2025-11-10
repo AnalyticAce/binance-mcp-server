@@ -19,6 +19,7 @@ dependencies = [
     "fastmcp>=2.5.1",
     "python-binance>=1.0.29",
     "typer>=0.16.0",
+    "python-dotenv>=1.0.1",
 ]
 
 [project.scripts]
@@ -26,3 +27,8 @@ binance-mcp-server = "binance_mcp_server.cli:app"
 
 [project.urls]
 Homepage = "https://analyticace.github.io/BinanceMCPServer/"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.2",
+]

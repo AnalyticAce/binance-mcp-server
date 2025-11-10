@@ -7,6 +7,7 @@ tools that can be called by LLM clients.
 """
 
 import sys
+import os
 import logging
 import argparse
 from typing import Dict, Any, Optional
@@ -51,8 +52,8 @@ mcp = FastMCP(
     - get_balance: Get account balances for all assets
     - get_account_snapshot: Get account snapshot data
     
-    Trading Operations:
-    - create_order: Create new trading orders (with enhanced validation)
+    Trading Operations (read-only by default):
+    - create_order: Create new trading orders (requires enable-trading; otherwise returns forbidden)
     - get_orders: Get order history for a specific symbol
     
     Portfolio & Analytics:
@@ -346,6 +347,16 @@ def create_order(
         Dictionary containing success status and order data.
     """
     logger.info(f"Tool called: create_order with symbol={symbol}, side={side}, type={order_type}, quantity={quantity}, price={price}")
+    # Read-only guardrail (default ON). Disable by setting BINANCE_MCP_READ_ONLY=false
+    read_only = os.getenv("BINANCE_MCP_READ_ONLY", "true").lower() == "true"
+    if read_only:
+        return {
+            "success": False,
+            "error": {
+                "type": "forbidden",
+                "message": "Trading is disabled (read-only mode). Set BINANCE_MCP_READ_ONLY=false or start with --enable-trading."
+            }
+        }
     
     try:
         from binance_mcp_server.tools.create_order import create_order as _create_order
