@@ -35,10 +35,12 @@ def test_rate_limited_decorator_cost():
 
 
 def test_estimate_weight_for_depth():
-    assert estimate_weight_for_depth(None) in (2, 5, 10, 20, 50, 5)
-    assert estimate_weight_for_depth(5) == 2
-    assert estimate_weight_for_depth(100) == 5
-    assert estimate_weight_for_depth(500) == 10
-    assert estimate_weight_for_depth(1000) == 20
-    assert estimate_weight_for_depth(5000) == 50
-
+    assert estimate_weight_for_depth(None) == 10  # default (assume 100)
+    assert estimate_weight_for_depth(5) == 1
+    assert estimate_weight_for_depth(10) == 1
+    assert estimate_weight_for_depth(20) == 2
+    assert estimate_weight_for_depth(50) == 5
+    assert estimate_weight_for_depth(100) == 10
+    assert estimate_weight_for_depth(500) == 50
+    assert estimate_weight_for_depth(1000) == 100
+    assert estimate_weight_for_depth(5000) == 500

@@ -613,23 +613,29 @@ binance_rate_limiter = binance_spot_rate_limiter
 
 
 def estimate_weight_for_depth(limit: Optional[int]) -> int:
-    """Approximate Binance weight for GET /depth by limit."""
+    """Approximate Binance weight for GET /depth by limit (per official guidance)."""
     if limit is None:
-        return 5
+        # Default server limit is usually 100 → cost 10; use 10 as safe default
+        return 10
     try:
         l = int(limit)
     except Exception:
-        return 5
-    # Based on common Binance guidance; conservative
-    if l <= 50:
-        return 2
-    if l <= 100:
-        return 5
-    if l <= 500:
         return 10
+    # Official weights (typical):
+    # 5/10 → 1, 20 → 2, 50 → 5, 100 → 10, 500 → 50, 1000 → 100, 5000 → 500
+    if l <= 10:
+        return 1
+    if l <= 20:
+        return 2
+    if l <= 50:
+        return 5
+    if l <= 100:
+        return 10
+    if l <= 500:
+        return 50
     if l <= 1000:
-        return 20
-    return 50
+        return 100
+    return 500
 
 
 def estimate_weight_for_ticker() -> int:
