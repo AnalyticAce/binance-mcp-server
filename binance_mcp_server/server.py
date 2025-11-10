@@ -13,7 +13,7 @@ import argparse
 from typing import Dict, Any, Optional
 from fastmcp import FastMCP
 from dotenv import load_dotenv
-from binance_mcp_server.security import SecurityConfig, validate_api_credentials, security_audit_log
+from binance_mcp_server.security import SecurityConfig, validate_api_credentials, security_audit_log, require_capability
 
 
 logging.basicConfig(
@@ -326,6 +326,7 @@ def get_pnl() -> Dict[str, Any]:
 
 
 @mcp.tool()
+@require_capability("TRADING")
 def create_order(
     symbol: str,
     side: str,
@@ -347,16 +348,7 @@ def create_order(
         Dictionary containing success status and order data.
     """
     logger.info(f"Tool called: create_order with symbol={symbol}, side={side}, type={order_type}, quantity={quantity}, price={price}")
-    # Read-only guardrail (default ON). Disable by setting BINANCE_MCP_READ_ONLY=false
-    read_only = os.getenv("BINANCE_MCP_READ_ONLY", "true").lower() == "true"
-    if read_only:
-        return {
-            "success": False,
-            "error": {
-                "type": "forbidden",
-                "message": "Trading is disabled (read-only mode). Set BINANCE_MCP_READ_ONLY=false or start with --enable-trading."
-            }
-        }
+    # Gating handled by @require_capability("TRADING")
     
     try:
         from binance_mcp_server.tools.create_order import create_order as _create_order
@@ -414,6 +406,7 @@ def get_liquidation_history() -> Dict[str, Any]:
         }
 
 @mcp.tool()
+@require_capability("WALLET")
 def get_deposit_address(coin: str) -> Dict[str, Any]:
     """
     Get the deposit address for a specific coin on the user's Binance account.
@@ -449,6 +442,7 @@ def get_deposit_address(coin: str) -> Dict[str, Any]:
 
 
 @mcp.tool()
+@require_capability("WALLET")
 def get_deposit_history(coin: str) -> Dict[str, Any]:
     """
     Get the deposit history for a specific coin on the user's Binance account.
@@ -484,6 +478,7 @@ def get_deposit_history(coin: str) -> Dict[str, Any]:
 
 
 @mcp.tool()
+@require_capability("WALLET")
 def get_withdraw_history(coin: str) -> Dict[str, Any]:
     """
     Get the withdrawal history for the user's Binance account.

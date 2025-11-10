@@ -14,14 +14,14 @@ from binance_mcp_server.utils import (
     create_success_response,
     rate_limited,
     binance_rate_limiter,
-    validate_symbol
+    validate_symbol_exists
 )
 
 
 logger = logging.getLogger(__name__)
 
 
-@rate_limited(binance_rate_limiter)
+@rate_limited(binance_rate_limiter, cost=1)
 def get_ticker_price(symbol: str) -> Dict[str, Any]:
     """
     Get the current price for a trading symbol on Binance.
@@ -49,7 +49,7 @@ def get_ticker_price(symbol: str) -> Dict[str, Any]:
     logger.info(f"Fetching ticker price for symbol: {symbol}")
     
     try:
-        normalized_symbol = validate_symbol(symbol)
+        normalized_symbol = validate_symbol_exists(symbol)
         
         client = get_binance_client()
         

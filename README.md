@@ -64,6 +64,31 @@ binance-mcp-server --api-key $BINANCE_API_KEY --api-secret $BINANCE_API_SECRET -
 
 # To enable trading tools explicitly, pass --enable-trading (recommended only on testnet)
 # binance-mcp-server --api-key $BINANCE_API_KEY --api-secret $BINANCE_API_SECRET --binance-testnet --enable-trading
+
+## Capabilities & Environment
+
+- Trading (state-changing):
+  - Default: disabled
+  - Enable via CLI `--enable-trading` or env `BINANCE_MCP_ENABLE_TRADING=true`
+  - `BINANCE_MCP_READ_ONLY=true` will always disable trading
+
+- Wallet (sensitive account info like deposit/withdraw endpoints):
+  - Default: disabled
+  - Enable via env `BINANCE_MCP_ENABLE_WALLET=true`
+
+- Account (balances, positions, PnL):
+  - Default: enabled
+  - Can be disabled via env `BINANCE_MCP_ENABLE_ACCOUNT=false`
+
+## Rate Limiting
+
+- Weighted token-bucket aligned with Binance weights (approximate).
+- Depth endpoint cost scales with `limit` (2..50).
+- Configure capacity via env: `BINANCE_WEIGHT_LIMIT_PER_MINUTE` (future), current default ~1200/min.
+
+## Symbol Validation (optional)
+
+- Enable existence checks with `BINANCE_MCP_VALIDATE_SYMBOL_EXISTS=true` (uses cached exchange info, TTL 15m).
 ```
 
 ### 4️⃣ Connect Your AI Agent

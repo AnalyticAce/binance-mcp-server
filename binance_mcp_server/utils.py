@@ -6,8 +6,9 @@ client initialization, rate limiting, and error handling utilities.
 """
 
 import time
+import os
 import logging
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, Callable, Iterable
 from functools import wraps
 from binance.client import Client
 from binance.exceptions import BinanceAPIException, BinanceRequestException
@@ -151,41 +152,33 @@ def get_binance_client() -> Client:
         raise RuntimeError(error_msg) from e
 
 
-class RateLimiter:
+class WeightedRateLimiter:
     """
-    Rate limiter for API calls to respect Binance limits.
+    Token-bucket weighted rate limiter.
 
-    Binance has strict rate limits (1200 requests per minute for most endpoints).
-    This class helps prevent rate limit violations.
+    Defaults to Binance spot limit ~1200 weight/min.
     """
-    
-    def __init__(self, max_calls: int = 1200, window: int = 60):
-        """
-        Initialize rate limiter.
-        
-        Args:
-            max_calls: Maximum number of calls allowed in the time window
-            window: Time window in seconds
-        """
-        self.max_calls = max_calls
-        self.window = window
-        self.calls = []
-    
-    def can_proceed(self) -> bool:
-        """
-        Check if we can make another API call without violating rate limits.
-        
-        Returns:
-            bool: True if call can proceed, False if rate limited
-        """
+
+    def __init__(self, capacity: int = 1200, refill_per_minute: int = 1200):
+        self.capacity = max(1, capacity)
+        self.refill_rate = max(1, refill_per_minute) / 60.0  # tokens per second
+        self.tokens = float(self.capacity)
+        self.last_refill = time.time()
+
+    def _refill(self) -> None:
         now = time.time()
-        
-        self.calls = [call_time for call_time in self.calls if now - call_time < self.window]
-        
-        if len(self.calls) < self.max_calls:
-            self.calls.append(now)
+        elapsed = now - self.last_refill
+        if elapsed <= 0:
+            return
+        self.tokens = min(self.capacity, self.tokens + elapsed * self.refill_rate)
+        self.last_refill = now
+
+    def try_consume(self, cost: int = 1) -> bool:
+        self._refill()
+        c = max(1, int(cost))
+        if self.tokens >= c:
+            self.tokens -= c
             return True
-            
         return False
 
 
@@ -303,23 +296,43 @@ def create_success_response(data: Any, metadata: Optional[Dict] = None) -> Dict[
     return response
 
 
-def rate_limited(rate_limiter: Optional[RateLimiter] = None):
+def rate_limited(rate_limiter: Optional[object] = None, *, cost: Optional[Callable[..., int] | int] = None):
     """
     Decorator to apply rate limiting to functions.
     
     Args:
         rate_limiter: Optional custom rate limiter instance
+        cost: Optional constant int cost or callable(*args, **kwargs) -> int
     """
     if rate_limiter is None:
-        rate_limiter = RateLimiter(max_calls=1200, window=60)
+        rate_limiter = WeightedRateLimiter(capacity=1200, refill_per_minute=1200)
     
     def decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
-            if not rate_limiter.can_proceed():
+            # Determine weight cost
+            if callable(cost):
+                try:
+                    weight = int(cost(*args, **kwargs))
+                except Exception:
+                    weight = 1
+            elif isinstance(cost, int):
+                weight = max(1, cost)
+            else:
+                weight = 1
+
+            # Support both old and new limiter interfaces
+            allowed = False
+            if hasattr(rate_limiter, "try_consume"):
+                allowed = rate_limiter.try_consume(weight)
+            elif hasattr(rate_limiter, "can_proceed"):
+                allowed = rate_limiter.can_proceed()
+
+            if not allowed:
                 return create_error_response(
                     "rate_limit_exceeded",
-                    "API rate limit exceeded. Please try again later."
+                    "API rate limit exceeded. Please try again later.",
+                    details={"weight": weight}
                 )
             return func(*args, **kwargs)
         return wrapper
@@ -367,6 +380,43 @@ def validate_symbol(symbol: str) -> str:
         raise ValueError("Symbol cannot start with a number or be purely numeric")
     
     return sanitized_symbol
+
+
+# Optional: symbol existence cache (opt-in)
+_SYMBOL_CACHE = {"ts": 0.0, "symbols": set()}
+
+
+def _cache_ttl_seconds() -> int:
+    try:
+        return int(os.getenv("BINANCE_SYMBOL_CACHE_TTL_SECONDS", "900"))
+    except Exception:
+        return 900
+
+
+def _ensure_symbol_cache(client: Client) -> None:
+    now = time.time()
+    if now - _SYMBOL_CACHE["ts"] < _cache_ttl_seconds():
+        return
+    info = client.get_exchange_info()
+    listed = {s["symbol"].upper() for s in info.get("symbols", []) if s.get("status") == "TRADING" or s.get("isSpotTradingAllowed")}
+    _SYMBOL_CACHE["symbols"] = listed
+    _SYMBOL_CACHE["ts"] = now
+
+
+def validate_symbol_exists(symbol: str) -> str:
+    """
+    Validate format and (optionally) that symbol is listed on the exchange.
+
+    Controlled by env BINANCE_MCP_VALIDATE_SYMBOL_EXISTS (default: false).
+    """
+    sym = validate_symbol(symbol)
+    if os.getenv("BINANCE_MCP_VALIDATE_SYMBOL_EXISTS", "false").lower() != "true":
+        return sym
+    client = get_binance_client()
+    _ensure_symbol_cache(client)
+    if sym not in _SYMBOL_CACHE["symbols"]:
+        raise ValueError(f"Symbol '{sym}' is not listed on Binance")
+    return sym
 
 
 def validate_and_get_order_side(side: str) -> Any:
@@ -514,5 +564,25 @@ def validate_limit_parameter(limit: Optional[int], max_limit: int = 5000) -> Opt
 
 
 
-# Global rate limiter instance
-binance_rate_limiter = RateLimiter(max_calls=1200, window=60)
+# Global weighted rate limiter instance
+binance_rate_limiter = WeightedRateLimiter(capacity=1200, refill_per_minute=1200)
+
+
+def estimate_weight_for_depth(limit: Optional[int]) -> int:
+    """Approximate Binance weight for GET /depth by limit."""
+    if limit is None:
+        return 5
+    try:
+        l = int(limit)
+    except Exception:
+        return 5
+    # Based on common Binance guidance; conservative
+    if l <= 50:
+        return 2
+    if l <= 100:
+        return 5
+    if l <= 500:
+        return 10
+    if l <= 1000:
+        return 20
+    return 50

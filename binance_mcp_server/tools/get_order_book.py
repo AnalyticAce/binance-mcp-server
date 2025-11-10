@@ -14,14 +14,15 @@ from binance_mcp_server.utils import (
     create_success_response,
     rate_limited,
     binance_rate_limiter,
-    validate_symbol,
+    validate_symbol_exists,
     validate_limit_parameter,
+    estimate_weight_for_depth,
 )
 
 logger = logging.getLogger(__name__)
 
 
-@rate_limited(binance_rate_limiter)
+@rate_limited(binance_rate_limiter, cost=lambda symbol, limit=None: estimate_weight_for_depth(limit))
 def get_order_book(symbol: str, limit: Optional[int] = None) -> Dict[str, Any]:
     """
     Get the current order book (bids/asks) for a trading symbol on Binance.
@@ -61,7 +62,7 @@ def get_order_book(symbol: str, limit: Optional[int] = None) -> Dict[str, Any]:
     
     try:
         # Validate and normalize symbol
-        normalized_symbol = validate_symbol(symbol)
+        normalized_symbol = validate_symbol_exists(symbol)
         
         # Validate limit parameter using enhanced validation
         validated_limit = validate_limit_parameter(limit, max_limit=5000)
