@@ -18,11 +18,12 @@ from binance_mcp_server.utils import (
     validate_limit_parameter,
     estimate_weight_for_depth,
 )
+from binance_mcp_server.security import secure_tool_wrapper
 
 logger = logging.getLogger(__name__)
 
 
-@rate_limited(binance_rate_limiter, cost=lambda symbol, limit=None: estimate_weight_for_depth(limit))
+@secure_tool_wrapper
 def get_order_book(symbol: str, limit: Optional[int] = None) -> Dict[str, Any]:
     """
     Get the current order book (bids/asks) for a trading symbol on Binance.
@@ -67,6 +68,16 @@ def get_order_book(symbol: str, limit: Optional[int] = None) -> Dict[str, Any]:
         # Validate limit parameter using enhanced validation
         validated_limit = validate_limit_parameter(limit, max_limit=5000)
         
+        # Rate-limit after successful validation
+        weight = estimate_weight_for_depth(validated_limit)
+        allowed = getattr(binance_rate_limiter, "try_consume", lambda *_: True)(weight)
+        if not allowed:
+            return create_error_response(
+                "rate_limit_exceeded",
+                "API rate limit exceeded. Please try again later.",
+                details={"weight": weight}
+            )
+
         client = get_binance_client()
         
         # Prepare API parameters

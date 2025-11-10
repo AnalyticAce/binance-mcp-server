@@ -181,6 +181,11 @@ class WeightedRateLimiter:
             return True
         return False
 
+    def refund(self, cost: int = 1) -> None:
+        """Return tokens back into the bucket (best-effort)."""
+        c = max(1, int(cost))
+        self.tokens = min(self.capacity, self.tokens + c)
+
 
 def create_error_response(error_type: str, message: str, details: Optional[Dict] = None) -> Dict[str, Any]:
     """
@@ -574,11 +579,36 @@ def _env_int(name: str, default: int) -> int:
 # Separate spot vs. futures limiters (approximate defaults)
 _SPOT_PER_MIN = _env_int("BINANCE_SPOT_WEIGHT_LIMIT_PER_MINUTE", 1200)
 _FUT_PER_MIN = _env_int("BINANCE_FUTURES_WEIGHT_LIMIT_PER_MINUTE", 1200)
+_SAPI_PER_MIN = _env_int("BINANCE_SAPI_WEIGHT_LIMIT_PER_MINUTE", 1200)
 
-binance_spot_rate_limiter = WeightedRateLimiter(capacity=_SPOT_PER_MIN, refill_per_minute=_SPOT_PER_MIN)
-binance_futures_rate_limiter = WeightedRateLimiter(capacity=_FUT_PER_MIN, refill_per_minute=_FUT_PER_MIN)
+_SPOT_PER_SEC = _env_int("BINANCE_SPOT_WEIGHT_LIMIT_PER_SECOND", _SPOT_PER_MIN)
+_FUT_PER_SEC = _env_int("BINANCE_FUTURES_WEIGHT_LIMIT_PER_SECOND", _FUT_PER_MIN)
+_SAPI_PER_SEC = _env_int("BINANCE_SAPI_WEIGHT_LIMIT_PER_SECOND", _SAPI_PER_MIN)
 
-# Backward compatibility alias
+
+class MultiWindowRateLimiter:
+    """Combine per-second and per-minute weighted buckets."""
+
+    def __init__(self, per_minute: int, per_second: int):
+        self.minute = WeightedRateLimiter(capacity=per_minute, refill_per_minute=per_minute)
+        # per-second bucket: refill_per_minute = per_second * 60
+        self.second = WeightedRateLimiter(capacity=per_second, refill_per_minute=per_second * 60)
+
+    def try_consume(self, cost: int = 1) -> bool:
+        # Consume from second first; if minute fails, refund second
+        if not self.second.try_consume(cost):
+            return False
+        if not self.minute.try_consume(cost):
+            self.second.refund(cost)
+            return False
+        return True
+
+
+binance_spot_rate_limiter = MultiWindowRateLimiter(_SPOT_PER_MIN, _SPOT_PER_SEC)
+binance_futures_rate_limiter = MultiWindowRateLimiter(_FUT_PER_MIN, _FUT_PER_SEC)
+binance_sapi_rate_limiter = MultiWindowRateLimiter(_SAPI_PER_MIN, _SAPI_PER_SEC)
+
+# Backward compatibility alias (spot)
 binance_rate_limiter = binance_spot_rate_limiter
 
 
