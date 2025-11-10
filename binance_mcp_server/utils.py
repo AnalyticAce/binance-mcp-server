@@ -564,8 +564,22 @@ def validate_limit_parameter(limit: Optional[int], max_limit: int = 5000) -> Opt
 
 
 
-# Global weighted rate limiter instance
-binance_rate_limiter = WeightedRateLimiter(capacity=1200, refill_per_minute=1200)
+def _env_int(name: str, default: int) -> int:
+    try:
+        return int(os.getenv(name, str(default)))
+    except Exception:
+        return default
+
+
+# Separate spot vs. futures limiters (approximate defaults)
+_SPOT_PER_MIN = _env_int("BINANCE_SPOT_WEIGHT_LIMIT_PER_MINUTE", 1200)
+_FUT_PER_MIN = _env_int("BINANCE_FUTURES_WEIGHT_LIMIT_PER_MINUTE", 1200)
+
+binance_spot_rate_limiter = WeightedRateLimiter(capacity=_SPOT_PER_MIN, refill_per_minute=_SPOT_PER_MIN)
+binance_futures_rate_limiter = WeightedRateLimiter(capacity=_FUT_PER_MIN, refill_per_minute=_FUT_PER_MIN)
+
+# Backward compatibility alias
+binance_rate_limiter = binance_spot_rate_limiter
 
 
 def estimate_weight_for_depth(limit: Optional[int]) -> int:
@@ -586,3 +600,39 @@ def estimate_weight_for_depth(limit: Optional[int]) -> int:
     if l <= 1000:
         return 20
     return 50
+
+
+def estimate_weight_for_ticker() -> int:
+    return 1
+
+
+def estimate_weight_for_24hr_ticker() -> int:
+    return 1
+
+
+def estimate_weight_for_exchange_info() -> int:
+    return 10
+
+
+def estimate_weight_for_account() -> int:
+    return 10
+
+
+def estimate_weight_for_all_orders() -> int:
+    return 10
+
+
+def estimate_weight_for_create_order() -> int:
+    return 1
+
+
+def estimate_weight_for_trade_fee() -> int:
+    return 1
+
+
+def estimate_weight_for_futures_account() -> int:
+    return 5
+
+
+def estimate_weight_for_position_info() -> int:
+    return 5

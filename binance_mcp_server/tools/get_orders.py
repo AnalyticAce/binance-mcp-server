@@ -9,19 +9,20 @@ import logging
 from typing import Dict, Any, Optional
 from binance.exceptions import BinanceAPIException, BinanceRequestException
 from binance_mcp_server.utils import (
-    get_binance_client, 
-    create_error_response, 
+    get_binance_client,
+    create_error_response,
     create_success_response,
     rate_limited,
-    binance_rate_limiter,
-    validate_symbol
+    binance_spot_rate_limiter,
+    validate_symbol_exists,
+    estimate_weight_for_all_orders,
 )
 
 
 logger = logging.getLogger(__name__)
 
 
-@rate_limited(binance_rate_limiter)
+@rate_limited(binance_spot_rate_limiter, cost=lambda *args, **kwargs: estimate_weight_for_all_orders())
 def get_orders(symbol: str, start_time: Optional[int] = None, end_time: Optional[int] = None) -> Dict[str, Any]:
     """
     Get all orders for a specific trading symbol on Binance.
@@ -75,7 +76,7 @@ def get_orders(symbol: str, start_time: Optional[int] = None, end_time: Optional
 
     try:
         
-        normalized_symbol = validate_symbol(symbol)
+        normalized_symbol = validate_symbol_exists(symbol)
         
         client = get_binance_client()
 

@@ -9,18 +9,18 @@ import logging
 from typing import Dict, Any, Optional
 from binance.exceptions import BinanceAPIException, BinanceRequestException
 from binance_mcp_server.utils import (
-    get_binance_client, 
-    create_error_response, 
+    get_binance_client,
+    create_error_response,
     create_success_response,
     rate_limited,
-    binance_rate_limiter,
+    binance_spot_rate_limiter,
 )
 
 
 logger = logging.getLogger(__name__)
 
 
-@rate_limited(binance_rate_limiter)
+@rate_limited(binance_spot_rate_limiter, cost=1)
 def get_deposit_history(coin: str) -> Dict[str, Any]:
     """
     Get the deposit transaction history for a specific cryptocurrency on the user's Binance account.
