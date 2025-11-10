@@ -7,12 +7,13 @@ tools that can be called by LLM clients.
 """
 
 import sys
+import os
 import logging
 import argparse
 from typing import Dict, Any, Optional
 from fastmcp import FastMCP
 from dotenv import load_dotenv
-from binance_mcp_server.security import SecurityConfig, validate_api_credentials, security_audit_log
+from binance_mcp_server.security import SecurityConfig, validate_api_credentials, security_audit_log, require_capability
 
 
 logging.basicConfig(
@@ -51,8 +52,8 @@ mcp = FastMCP(
     - get_balance: Get account balances for all assets
     - get_account_snapshot: Get account snapshot data
     
-    Trading Operations:
-    - create_order: Create new trading orders (with enhanced validation)
+    Trading Operations (read-only by default):
+    - create_order: Create new trading orders (requires enable-trading; otherwise returns forbidden)
     - get_orders: Get order history for a specific symbol
     
     Portfolio & Analytics:
@@ -325,6 +326,7 @@ def get_pnl() -> Dict[str, Any]:
 
 
 @mcp.tool()
+@require_capability("TRADING")
 def create_order(
     symbol: str,
     side: str,
@@ -346,6 +348,7 @@ def create_order(
         Dictionary containing success status and order data.
     """
     logger.info(f"Tool called: create_order with symbol={symbol}, side={side}, type={order_type}, quantity={quantity}, price={price}")
+    # Gating handled by @require_capability("TRADING")
     
     try:
         from binance_mcp_server.tools.create_order import create_order as _create_order
@@ -403,6 +406,7 @@ def get_liquidation_history() -> Dict[str, Any]:
         }
 
 @mcp.tool()
+@require_capability("WALLET")
 def get_deposit_address(coin: str) -> Dict[str, Any]:
     """
     Get the deposit address for a specific coin on the user's Binance account.
@@ -438,6 +442,7 @@ def get_deposit_address(coin: str) -> Dict[str, Any]:
 
 
 @mcp.tool()
+@require_capability("WALLET")
 def get_deposit_history(coin: str) -> Dict[str, Any]:
     """
     Get the deposit history for a specific coin on the user's Binance account.
@@ -473,6 +478,7 @@ def get_deposit_history(coin: str) -> Dict[str, Any]:
 
 
 @mcp.tool()
+@require_capability("WALLET")
 def get_withdraw_history(coin: str) -> Dict[str, Any]:
     """
     Get the withdrawal history for the user's Binance account.

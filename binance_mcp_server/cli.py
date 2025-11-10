@@ -55,6 +55,11 @@ def binance_mcp_server(
         "--transport",
         help="Transport method to use (stdio, streamable-http, or sse)"
     ),
+    read_only: bool = typer.Option(
+        True,
+        "--read-only/--enable-trading",
+        help="Run server in read-only mode (disable trading tools)"
+    ),
     port: int = typer.Option(
         8000,
         "--port",
@@ -83,6 +88,8 @@ def binance_mcp_server(
         os.environ["BINANCE_API_SECRET"] = api_secret
     if binance_testnet:
         os.environ["BINANCE_TESTNET"] = str(binance_testnet).lower()
+    # Read-only guardrail env
+    os.environ["BINANCE_MCP_READ_ONLY"] = str(read_only).lower()
     
     # Initialize and validate configuration
     config = BinanceConfig()
@@ -103,6 +110,7 @@ def binance_mcp_server(
     typer.echo(f"📡 Transport: {transport.value.upper()}")
     typer.echo(f"🌐 Environment: {'Testnet' if config.testnet else 'Production'}")
     typer.echo(f"🔗 Base URL: {config.base_url}")
+    typer.echo(f"🔒 Mode: {'Read-only' if read_only else 'Trading enabled'}")
     
     if transport in [TransportType.streamable_http, TransportType.sse]:
         typer.echo(f"Server: http://{host}:{port}")

@@ -59,7 +59,46 @@ export BINANCE_TESTNET="true"
 
 ```bash
 # Start the MCP server (after installing from PyPI)
-binance-mcp-server --api-key $BINANCE_API_KEY --api-secret $BINANCE_API_SECRET --binance-testnet
+# By default the server runs in READ-ONLY mode (trading disabled)
+binance-mcp-server --api-key $BINANCE_API_KEY --api-secret $BINANCE_API_SECRET --binance-testnet --read-only
+
+# To enable trading tools explicitly, pass --enable-trading (recommended only on testnet)
+# binance-mcp-server --api-key $BINANCE_API_KEY --api-secret $BINANCE_API_SECRET --binance-testnet --enable-trading
+
+## Capabilities & Environment
+
+- Trading (state-changing):
+  - Default: disabled
+  - Enable via CLI `--enable-trading` or env `BINANCE_MCP_ENABLE_TRADING=true`
+  - `BINANCE_MCP_READ_ONLY=true` will always disable trading
+
+- Wallet (sensitive account info like deposit/withdraw endpoints):
+  - Default: disabled
+  - Enable via env `BINANCE_MCP_ENABLE_WALLET=true`
+
+- Account (balances, positions, PnL):
+  - Default: enabled
+  - Can be disabled via env `BINANCE_MCP_ENABLE_ACCOUNT=false`
+
+## Rate Limiting
+
+- Weighted token-bucket aligned s Binance weights (approximate).
+- Separate limiters:
+  - Spot: `BINANCE_SPOT_WEIGHT_LIMIT_PER_MINUTE` (default 1200)
+  - Futures: `BINANCE_FUTURES_WEIGHT_LIMIT_PER_MINUTE` (default 1200)
+- Endpoint weights (defaults):
+  - Depth `/depth`: by `limit` → 2/5/10/20/50
+  - 24h ticker `/ticker/24hr`: 1
+  - Price `/ticker/price`: 1
+  - Exchange info `/exchangeInfo`: 10
+  - Account `/account`: 10
+  - Orders `/allOrders`: 10
+  - New order `/order`: 1
+  - Futures account/positions: 5
+
+## Symbol Validation (optional)
+
+- Enable existence checks with `BINANCE_MCP_VALIDATE_SYMBOL_EXISTS=true` (uses cached exchange info, TTL 15m).
 ```
 
 ### 4️⃣ Connect Your AI Agent

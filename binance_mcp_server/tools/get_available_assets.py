@@ -8,18 +8,19 @@ import logging
 from typing import Dict, Any
 from binance.exceptions import BinanceAPIException, BinanceRequestException
 from binance_mcp_server.utils import (
-    get_binance_client, 
-    create_error_response, 
+    get_binance_client,
+    create_error_response,
     create_success_response,
     rate_limited,
-    binance_rate_limiter,
+    binance_spot_rate_limiter,
+    estimate_weight_for_exchange_info,
 )
 
 
 logger = logging.getLogger(__name__)
 
 
-@rate_limited(binance_rate_limiter)
+@rate_limited(binance_spot_rate_limiter, cost=lambda: estimate_weight_for_exchange_info())
 def get_available_assets() -> Dict[str, Any]:
     """
     Get a comprehensive list of all available trading assets and symbols on Binance.

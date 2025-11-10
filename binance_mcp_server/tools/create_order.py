@@ -13,18 +13,19 @@ from binance_mcp_server.utils import (
     create_error_response, 
     create_success_response,
     rate_limited,
-    binance_rate_limiter,
-    validate_symbol,
+    binance_spot_rate_limiter,
+    validate_symbol_exists,
     validate_and_get_order_side,
     validate_and_get_order_type,
-    validate_positive_number
+    validate_positive_number,
+    estimate_weight_for_create_order,
 )
 
 
 logger = logging.getLogger(__name__)
 
 
-@rate_limited(binance_rate_limiter)
+@rate_limited(binance_spot_rate_limiter, cost=lambda *args, **kwargs: estimate_weight_for_create_order())
 def create_order(symbol: str, side: str, order_type: str, quantity: float, price: Optional[float] = None) -> Dict[str, Any]:
     """
     Create a new trading order on Binance.
@@ -78,7 +79,7 @@ def create_order(symbol: str, side: str, order_type: str, quantity: float, price
         client = get_binance_client()
         
         # Enhanced input validation
-        normalized_symbol = validate_symbol(symbol)
+        normalized_symbol = validate_symbol_exists(symbol)
         validated_side = validate_and_get_order_side(side)
         validated_order_type = validate_and_get_order_type(order_type)
         

@@ -20,7 +20,8 @@ from binance_mcp_server.security import (
     SecurityConfig,
     validate_api_credentials,
     SecurityMiddleware,
-    secure_hash
+    secure_hash,
+    require_capability,
 )
 
 
@@ -252,3 +253,23 @@ class TestSecurityFeatures:
         assert len(hash_result) == 16  # First 16 chars of SHA-256
         assert hash_result == secure_hash(test_data)  # Consistent
         assert hash_result != secure_hash("different_data")  # Different for different input
+
+    def test_require_capability_decorator(self, monkeypatch):
+        """Trading gated by default; enable via env toggles."""
+        # Default read-only blocks trading
+        monkeypatch.setenv("BINANCE_MCP_READ_ONLY", "true")
+        monkeypatch.delenv("BINANCE_MCP_ENABLE_TRADING", raising=False)
+
+        @require_capability("TRADING")
+        def gated():
+            return {"success": True}
+
+        res = gated()
+        assert res["success"] is False
+        assert res["error"]["type"] == "forbidden"
+
+        # Enable trading: unset read-only and enable flag
+        monkeypatch.setenv("BINANCE_MCP_READ_ONLY", "false")
+        monkeypatch.setenv("BINANCE_MCP_ENABLE_TRADING", "true")
+        res2 = gated()
+        assert res2.get("success", True) is True

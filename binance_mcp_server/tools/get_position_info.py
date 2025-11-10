@@ -13,15 +13,16 @@ from binance_mcp_server.utils import (
     create_error_response, 
     create_success_response,
     rate_limited,
-    binance_rate_limiter,
-    validate_symbol
+    binance_futures_rate_limiter,
+    validate_symbol,
+    estimate_weight_for_position_info,
 )
 
 
 logger = logging.getLogger(__name__)
 
 
-@rate_limited(binance_rate_limiter)
+@rate_limited(binance_futures_rate_limiter, cost=lambda: estimate_weight_for_position_info())
 def get_position_info() -> Dict[str, Any]:
     """
     Get the current position information for the user's Binance futures account.

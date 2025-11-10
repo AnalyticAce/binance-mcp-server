@@ -9,7 +9,7 @@ import os
 import logging
 import hashlib
 import secrets
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any, Optional, List, Callable
 from functools import wraps
 
 logger = logging.getLogger(__name__)
@@ -253,3 +253,62 @@ def secure_tool_wrapper(func):
             raise
     
     return wrapper
+
+
+def _forbidden_error(message: str) -> Dict[str, Any]:
+    """Standardized forbidden error response for gated tools."""
+    return {
+        "success": False,
+        "error": {
+            "type": "forbidden",
+            "message": message
+        }
+    }
+
+
+def is_capability_enabled(capability: str, default: bool = False) -> bool:
+    """
+    Check if a capability is enabled via environment.
+
+    Supports:
+      - TRADING: BINANCE_MCP_ENABLE_TRADING, also disabled when BINANCE_MCP_READ_ONLY=true
+      - WALLET:  BINANCE_MCP_ENABLE_WALLET
+      - ACCOUNT: BINANCE_MCP_ENABLE_ACCOUNT (default True)
+    """
+    cap = capability.upper()
+    # Read-only disables trading regardless of specific flag
+    read_only = os.getenv("BINANCE_MCP_READ_ONLY", "true").lower() == "true"
+    if cap == "TRADING" and read_only:
+        return False
+
+    env_map = {
+        "TRADING": ("BINANCE_MCP_ENABLE_TRADING", False),
+        "WALLET": ("BINANCE_MCP_ENABLE_WALLET", False),
+        "ACCOUNT": ("BINANCE_MCP_ENABLE_ACCOUNT", True),
+    }
+
+    env_var, fallback = env_map.get(cap, (None, default))
+    if env_var is None:
+        return default
+    val = os.getenv(env_var)
+    if val is None:
+        return fallback
+    return val.lower() == "true"
+
+
+def require_capability(capability: str, *, default: bool = False) -> Callable:
+    """
+    Decorator to gate a tool by capability (TRADING, WALLET, ACCOUNT).
+
+    Returns a standardized forbidden error if capability is disabled.
+    """
+    def decorator(func: Callable) -> Callable:
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            if not is_capability_enabled(capability, default=default):
+                return _forbidden_error(
+                    f"Capability '{capability}' is disabled. Enable via environment or CLI."
+                )
+            return func(*args, **kwargs)
+        return wrapper
+    return decorator

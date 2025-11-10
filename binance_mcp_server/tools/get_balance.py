@@ -13,14 +13,15 @@ from binance_mcp_server.utils import (
     create_error_response, 
     create_success_response,
     rate_limited,
-    binance_rate_limiter,
+    binance_spot_rate_limiter,
+    estimate_weight_for_account,
 )
 
 
 logger = logging.getLogger(__name__)
 
 
-@rate_limited(binance_rate_limiter)
+@rate_limited(binance_spot_rate_limiter, cost=lambda: estimate_weight_for_account())
 def get_balance() -> Dict[str, Any]:
     """
     Get the current account balance for all assets on Binance.

@@ -10,18 +10,19 @@ from typing import Dict, Any
 from binance.exceptions import BinanceAPIException, BinanceRequestException
 from binance_mcp_server.utils import  (
     get_binance_client, 
-    validate_symbol, 
+    validate_symbol_exists, 
     rate_limited, 
-    binance_rate_limiter,
+    binance_spot_rate_limiter,
     create_success_response,
-    create_error_response
+    create_error_response,
+    estimate_weight_for_24hr_ticker,
 )
 
 
 logger = logging.getLogger(__name__)
 
 
-@rate_limited(binance_rate_limiter)
+@rate_limited(binance_spot_rate_limiter, cost=lambda symbol: estimate_weight_for_24hr_ticker())
 def get_ticker(symbol: str) -> Dict[str, Any]:
     """
     Get 24-hour ticker price change statistics for a symbol.
@@ -47,7 +48,7 @@ def get_ticker(symbol: str) -> Dict[str, Any]:
 
     try:
         
-        normalized_symbol = validate_symbol(symbol)
+        normalized_symbol = validate_symbol_exists(symbol)
         
         client = get_binance_client()
         ticker = client.get_ticker(symbol=normalized_symbol)
