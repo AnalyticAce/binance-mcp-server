@@ -82,9 +82,19 @@ binance-mcp-server --api-key $BINANCE_API_KEY --api-secret $BINANCE_API_SECRET -
 
 ## Rate Limiting
 
-- Weighted token-bucket aligned with Binance weights (approximate).
-- Depth endpoint cost scales with `limit` (2..50).
-- Configure capacity via env: `BINANCE_WEIGHT_LIMIT_PER_MINUTE` (future), current default ~1200/min.
+- Weighted token-bucket aligned s Binance weights (approximate).
+- Separate limiters:
+  - Spot: `BINANCE_SPOT_WEIGHT_LIMIT_PER_MINUTE` (default 1200)
+  - Futures: `BINANCE_FUTURES_WEIGHT_LIMIT_PER_MINUTE` (default 1200)
+- Endpoint weights (defaults):
+  - Depth `/depth`: by `limit` → 2/5/10/20/50
+  - 24h ticker `/ticker/24hr`: 1
+  - Price `/ticker/price`: 1
+  - Exchange info `/exchangeInfo`: 10
+  - Account `/account`: 10
+  - Orders `/allOrders`: 10
+  - New order `/order`: 1
+  - Futures account/positions: 5
 
 ## Symbol Validation (optional)
 
