@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 mcp = FastMCP(
     name="binance-mcp-server",
-    version="1.2.5",  # Updated to match pyproject.toml
+    version="1.2.7",  # Updated to match pyproject.toml
     instructions="""
     This server provides secure access to Binance cryptocurrency exchange functionality following MCP best practices.
     
