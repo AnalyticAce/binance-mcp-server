@@ -25,10 +25,13 @@ The AI sends the request to this server, which securely executes it on Binance a
 
 ### 1️⃣ Installation
 
-The easiest way to install is using `pip`:
+The easiest way to install is using `pip` or `uv`:
 
 ```bash
+# using pip
 pip install binance-mcp-server
+# using uv
+uv add binance-mcp-server
 ```
 
 ### 2️⃣ Configuration
