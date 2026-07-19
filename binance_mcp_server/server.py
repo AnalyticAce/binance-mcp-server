@@ -66,6 +66,7 @@ mcp = FastMCP(
     
     Risk Management:
     - get_liquidation_history: Get liquidation history for futures trading
+    - get_funding_rates: Get funding rate history for perpetual futures contracts
     
     All operations implement:
     - Comprehensive input validation
@@ -627,6 +628,47 @@ def get_order_book(symbol: str, limit: Optional[int] = None) -> Dict[str, Any]:
         }
 
 
+@mcp.tool()
+def get_funding_rates(symbol: str, limit: Optional[int] = None) -> Dict[str, Any]:
+    """
+    Get funding rate history for a perpetual futures contract on Binance.
+
+    Funding rates are periodic payments between long and short traders in
+    perpetual futures markets. Positive rates mean longs pay shorts (bullish
+    crowding), negative rates mean shorts pay longs (bearish crowding).
+
+    Args:
+        symbol: Trading pair symbol (e.g., 'BTCUSDT', 'ETHUSDT')
+        limit: Number of records to return (default: 100, max: 1000)
+
+    Returns:
+        Dictionary containing funding rate history data.
+    """
+    logger.info(f"Tool called: get_funding_rates with symbol={symbol}, limit={limit}")
+
+    try:
+        from binance_mcp_server.tools.get_funding_rates import get_funding_rates as _get_funding_rates
+        result = _get_funding_rates(symbol, limit)
+
+        if result.get("success"):
+            count = result.get("data", {}).get("count", 0)
+            logger.info(f"Successfully fetched {count} funding rate entries for {symbol}")
+        else:
+            logger.warning(f"Failed to fetch funding rates for {symbol}: {result.get('error', {}).get('message')}")
+
+        return result
+
+    except Exception as e:
+        logger.error(f"Unexpected error in get_funding_rates tool: {str(e)}")
+        return {
+            "success": False,
+            "error": {
+                "type": "tool_error",
+                "message": f"Tool execution failed: {str(e)}"
+            }
+        }
+
+
 
 def validate_configuration() -> bool:
     """
@@ -644,7 +686,7 @@ def validate_configuration() -> bool:
         if not config.is_valid():
             logger.error("Invalid Binance configuration:")
             for error in config.get_validation_errors():
-                logger.error(f"  • {error}")
+                logger.error(f"  â€¢ {error}")
             return False
         
         # Validate API credentials security
@@ -657,7 +699,7 @@ def validate_configuration() -> bool:
         if not security_config.is_secure():
             logger.warning("Security configuration warnings:")
             for warning in security_config.get_security_warnings():
-                logger.warning(f"  • {warning}")
+                logger.warning(f"  â€¢ {warning}")
             # Don't fail on security warnings, just log them
         
         # Log successful validation with security audit
